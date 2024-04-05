@@ -85,3 +85,4 @@ class ProductView(APIView):
             'success': True
         }, status=HTTPStatus.OK)
 
+

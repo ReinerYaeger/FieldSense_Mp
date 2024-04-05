@@ -1,0 +1,10 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block extrastyle %}
+    <script src="{% static 'assets/js/pages/chart-js.js' %}"></script>
+    <!-- morris css -->
+    <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
+    {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
+{% endblock extrastyle %}
+

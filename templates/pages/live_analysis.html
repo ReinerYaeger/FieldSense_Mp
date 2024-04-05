@@ -1,0 +1,96 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block extrastyle %}
+    <script src="{% static 'assets/js/pages/chart-js.js' %}"></script>
+    <!-- morris css -->
+    <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
+{% endblock extrastyle %}
+
+{% block content %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // WebSocket setup
+            const url = `ws://${window.location.host}/ws/socket-server/`;
+            const dataSocket = new WebSocket(url);
+
+            const avgChartConfig = {
+                type: 'line',
+                data: {
+                    labels: [],  // Array to store date-time labels
+                    datasets: [{
+                        data: [],  // Array to store average data for A0
+                        label: "Average Data",
+                        backgroundColor: "#3e95cd",
+                        tension: 0,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: "bottom",
+                        labels: {
+                            fontColor: 'rgb(0, 0, 0)'
+                        }
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            };
+
+            const ctx = document.getElementById('acquisitions').getContext('2d');
+            const avgChart = new Chart(ctx, avgChartConfig);
+
+            // WebSocket event listener
+            dataSocket.addEventListener('message', function (e) {
+                const graphData = JSON.parse(e.data);
+                console.log(graphData);
+
+                // Update labels and data arrays
+                avgChart.data.labels.push(graphData.label);
+                avgChart.data.datasets[0].data.push(graphData.avg_sensor_data);
+
+
+                // Maintain a maximum number of data points
+                const maxDataPoints = 100;
+                if (avgChart.data.labels.length > maxDataPoints) {
+                    avgChart.data.labels.shift();
+                    avgChart.data.datasets[0].data.shift();
+                    avgChart.data.datasets[1].data.shift();
+                    avgChart.data.datasets[2].data.shift();
+                }
+
+                avgChart.update();
+            });
+        });
+
+    </script>
+
+    <!-- [ Main Content ] start -->
+    <div class="row">
+        <!-- [ Chart Js  ] start -->
+    {% for groups in sensor_group %}
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5> {{ groups.sensor_group_name  }} Sensor Groups</h5>
+                </div>
+                <div class="card-block">
+                    <div class="container">
+                        <canvas width="900" height="300" aria-label="Chart" role="img" id="acquisitions"></canvas>
+                    </div>
+                    {% comment %}<div id="morris-line-chart" class="ChartShadow" style="height:300px"></div>{% endcomment %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}

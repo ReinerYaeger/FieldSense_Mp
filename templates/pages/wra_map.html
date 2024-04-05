@@ -1,0 +1,50 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block extrastyle %}
+
+    <style>
+        .iframe-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .parent-fit {
+            flex-grow: 1;
+            border: none;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+
+    </style>
+
+
+    <script src="{% static 'assets/js/pages/chart-js.js' %}"></script>
+    <!-- morris css -->
+
+
+{% endblock extrastyle %}
+
+
+
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+
+            <div class="col-sm-4">
+                <p>Map Created By The</p>
+                <a href="https://www.wra.gov.jm/" alt="Open Meteo"> WRA</a>
+                </div>
+                <div class="iframe-container">
+                    <iframe class="parent-fit"
+                            src="https://www.arcgis.com/home/webmap/viewer.html?webmap=645025797e0947c68388adcd8c455995&extent=-78.9494,17.2273,-75.5765,18.9166"></iframe>
+                </div>
+        </div>
+    </div>
+
+{% endblock %}

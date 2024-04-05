@@ -1,0 +1,106 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block extrastyle %}
+
+    <style>
+        .map-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .parent-fit {
+            flex-grow: 1;
+            border: none;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css"/>
+{% endblock extrastyle %}
+
+
+{% block breadcrumbs %}{% endblock breadcrumbs %}
+
+{% block content %}
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Leaflet map
+            var map = L.map('map').setView([18.1096, -77.2975], 10);
+            var spatialExtent = L.latLngBounds([17.7012, -78.3666], [18.5242, -76.199]);
+
+            map.setMaxBounds(spatialExtent);
+
+            // Add Tile layer (e.g., OpenStreetMap)
+            L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }).addTo(map);
+
+            var minimap = new L.Control.MiniMap(
+                L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                    maxZoom: 14,
+
+                }), {
+                    toggleDisplay: true,
+                    minimized: false
+                }
+            ).addTo(map);
+            fetch('http://127.0.0.1:8000/sensor_location/')
+                .then(response => response.json())
+                .then(location_data => {
+                    console.log(location_data)
+                    fetch('http://127.0.0.1:8000/sensor_dataset/')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data)
+                            for (const feature of location_data.features) {
+                                for (const d of data) {
+                                    const lat = feature.geometry.coordinates[1];
+                                    const lng = feature.geometry.coordinates[0];
+                                    const sensorGroupName = feature.properties.sensor_group_name;
+
+                                    let avg_sensor_data = 0
+                                    let count = 1
+                                    for ( let i= 0 ; i<=data.length-1 ; i++ ){
+                                       let  value = data[i].features[0].properties.sensor_data
+                                        avg_sensor_data += value;
+                                    }
+                                    avg_sensor_data = avg_sensor_data / count
+
+                                    const popupContent = "Sensor Group: " + feature.id + "\n Current Avg Sensor Reading " +avg_sensor_data +  " \n\n " +  data[0].features[0].properties.sensor_date_time;
+                                    var marker = L.marker([lat, lng]).addTo(map);
+                                    if (popupContent) {
+                                        marker.bindPopup(popupContent);
+                                    }
+
+                                    var circle =  L.circle([lat, lng], {radius: 900}).addTo(map)
+
+                                }
+                            }
+                        });
+                });
+        });
+    </script>
+
+
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="map-container">
+                <div onload="init()" id="map" class="map parent-fit"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

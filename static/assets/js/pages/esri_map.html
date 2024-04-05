@@ -1,0 +1,117 @@
+<script>
+// Define map and initial view
+var map = L.map('map').setView([18.1096, -77.2975], 10);
+var spatialExtent = L.latLngBounds([17.7012, -78.3666], [18.5242, -76.199]);
+map.setMaxBounds(spatialExtent);
+
+// Add ArcGIS tile layer
+L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+}).addTo(map);
+
+// Add minimap control
+var minimap = new L.Control.MiniMap(
+    L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 14,
+    }), {
+        toggleDisplay: true,
+        minimized: false
+    }
+).addTo(map);
+
+// Fetch sensor data
+var dataurl = '{% url "sensor_dataset" %}';
+$.getJSON(dataurl, function (data) {
+    let url = `ws://${window.location.host}/ws/map-data-socket/`;
+    const dataSocket = new WebSocket(url);
+
+    // WebSocket connection handling
+    dataSocket.onopen = function () {
+        console.log("WebSocket connection established.");
+    };
+
+    dataSocket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+
+    // WebSocket message handling
+    dataSocket.onmessage = function (e) {
+        let webSocketData = JSON.parse(e.data);
+        updateMap(webSocketData, data);
+    };
+});
+
+// Function to update map with sensor data
+function updateMap(webSocketData, geojsonData) {
+    // Clear existing layers
+    map.eachLayer(function (layer) {
+        if (!(layer instanceof L.TileLayer)) {
+            map.removeLayer(layer);
+        }
+    });
+
+    // Add new marker/circle layer
+    var sensorLayer = L.geoJSON(geojsonData, {
+        pointToLayer: function (feature, latlng) {
+            var avg_sensor_data = webSocketData['avg_sensor_data'];
+            var sensor_group_name = webSocketData['sensor_group_name'];
+            var state = (avg_sensor_data < 0.4) ? "Dry" : "Saturated";
+
+            var marker = new L.Marker(latlng).bindPopup('<h5><b> Sensor Group: ' + sensor_group_name + '</b></h5>' +
+                '<p>Average Moisture Level: ' + avg_sensor_data.toFixed(3) + '</p>' +
+                '<p> Soil condition: ' + state + '</p>');
+            return marker;
+        },
+        onEachFeature: function (feature, layer) {
+            layer.on('mouseover', function (e) {
+                layer.openPopup();
+            });
+            layer.on('mouseout', function (e) {
+                layer.closePopup();
+            });
+        }
+    }).addTo(map);
+}
+
+// var map = L.map('map').setView([18.1096, -77.2975], 10);
+// var spatialExtent = L.latLngBounds([17.7012, -78.3666], [18.5242, -76.199]);
+// map.setMaxBounds(spatialExtent);
+//
+// // Add ERSIT tile layer (replace with correct URLs and attribution)
+// L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+//     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+// }).addTo(map);
+// // var minimap = new L.Control.MiniMap(
+// //     L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+// //         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+// //         maxZoom: 14,
+// //
+// //     }), {
+// //         toggleDisplay: true,
+// //         minimized: false
+// //     }
+// // ).addTo(map);
+//
+// // Replace placeholder with actual sensor dataset URL
+// var dataurl = "{% url 'index' %}"
+//
+// $.getJSON(dataurl, function (data) {
+//     var markersLayer = L.geoJSON(data, {
+//         pointToLayer: function (feature, latlng) {
+//             // Assuming sensor data format is compatible with avg_sensor_data
+//             var avg_sensor_data = feature.properties.avg_sensor_data; // Access sensor data from feature
+//             var sensor_group_name = feature.properties.sensor_group_name;
+//             var state = avg_sensor_data < 0.4 ? "Dry" : "Saturated"; // Adjust condition if needed
+//
+//             var marker = new L.Marker(latlng)
+//                 .bindPopup('<h5><b>Sensor Group: ' + sensor_group_name + '</b></h5>' +
+//                     '<p>Average Moisture Level: ' + avg_sensor_data.toFixed(3) + '</p>' +
+//                     '<p>Soil Condition: ' + state + '</p>');
+//             return marker;
+//         }
+//     });
+//
+//     markersLayer.addTo(map);
+// });
+</script>
