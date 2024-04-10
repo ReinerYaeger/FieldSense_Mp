@@ -62,32 +62,20 @@
 
         });
 
-        function pointToLocation() {
-
-            if (marker) { // check
-                map.removeLayer(marker); // remove
-            }
-            long = document.getElementById("long-value").value
-            lat = document.getElementById("lat-value").value
-
-            if (long < -78 || long > 76) {
-                document.getElementById("long-value").value = -77.36572265625001
-                document.getElementById("lat-value").value = 18.08946706198645
-            } else if (lat < 17 && lat > 18.59) {
-                document.getElementById("long-value").value = -77.36572265625001
-                document.getElementById("lat-value").value = 18.08946706198645
-            }
-
-            marker = L.marker([lat, long]).addTo(map);
-        }
     </script>
 
     <script>
 
         function changeForm() {
-            if (document.getElementById('sensor_group_radio').checked()) {
+            if (document.getElementById('sensor_group_radio').checked) {
 
-            } else if (document.getElementById('island_wide_radio').checked()) {
+                document.getElementById('sensor_group_form').hidden = false;
+                document.getElementById('island_wide_form').hidden = true;
+
+            } else if (document.getElementById('island_wide_radio').checked) {
+                document.getElementById('sensor_group_form').hidden = true;
+                document.getElementById('island_wide_form').hidden = false;
+
 
             }
         }
@@ -103,14 +91,14 @@
                 <span class="r s"></span>
                 <span class="r"></span>
             </div>
-            <div class="card">
+            <div class="card" style="width: 25rem;">
                 <form method="post" class="card-body text-center">
                     {% csrf_token %}
 
                     <div class="mb-4">
                         <i class="feather icon-user-plus auth-icon"></i>
                     </div>
-                    <h3 class="mb-4">Generate Report</h3>
+                    <h3 class="mb-6">Generate Report</h3>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -126,21 +114,71 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="radio"
                                        id="sensor_group_radio" onchange="changeForm()"
-                                       >
+                                >
                                 <label class=" form-check-label" for="radio">
                                     Sensor Group
                                 </label>
                             </div>
                         </div>
                     </div>
+                    <div id="island_wide_form">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="s-date" class="form-label">Start Date</label>
+                                <input onchange="" step=".0000001" type="date" class="form-control"
+                                       value="18.109656" id="lat-value">
+                            </div>
 
-{#            sensor group form start here#}
-                    <div id="sensor_group_form">
+                            <div class="col-md-6">
+                                <label for="e-date" class="form-label">End Date</label>
+                                <input onchange="" step=".0000001" type="date" class="form-control"
+                                       value="-77.297565" id="long-value">
+                            </div>
+                        </div>
+                        <b><h5>Select Variables</h5></b>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                            <label class="form-check-label" for="flexCheckDefault">Soil Moisture 10cm</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                            <label class="form-check-label" for="flexCheckDefault">Soil Temperature 0cm</label>
+                        </div>
+
+                        <!-- Checked checkbox -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked/>
+                            <label class="form-check-label" for="flexCheckChecked">Temperature 80m</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked/>
+                            <label class="form-check-label" for="flexCheckChecked">Evapotranspiration</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked/>
+                            <label class="form-check-label" for="flexCheckChecked">Wind Speed 10m</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked/>
+                            <label class="form-check-label" for="flexCheckChecked">Wind Speed 10m</label>
+                        </div>
+
+
+                    </div>
+
+                    {#            sensor group form start here#}
+                    <div hidden id="sensor_group_form">
                         <div class="mb-9">
                             <div class="map">
                                 <div onload="init()" id="map" class="map parent-fit"></div>
                             </div>
                         </div>
+                        <br>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -174,7 +212,7 @@
                         </button>
                 </form>
             </div>
-{#            sensor group form ends here#}
+            {#            sensor group form ends here#}
 
         </div>
     </div>
