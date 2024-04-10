@@ -127,7 +127,7 @@
             .catch(error => {
                 console.error('Error fetching data:', error);
             });
-
+    var soil_data = 0
         {#Monthly Sensor #}
         fetch('http://127.0.0.1:8000/average_reading_past_week/')
             .then(response => response.json())
@@ -153,6 +153,7 @@
                 } else {
                     progress_bar.classList.add("text-c-red");
                 }
+                soil_data= avg_readings[1]
 
                 // Create the histogram chart
                 new Chart(document.getElementById('monthly_pie_chart'), {
@@ -206,174 +207,250 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const form = document.getElementById("sensorForm");
-            const select = document.getElementById("sensor_group_select");
+        document.addEventListener('DOMContentLoaded', function () {
 
-            select.addEventListener("change", function () {
-                const formData = new FormData(form);
-                const selectedOption = select.options[select.selectedIndex];
-                const x = selectedOption.dataset.x;
-                const y = selectedOption.dataset.y;
+            fetch('http://127.0.0.1:8000/calculate_weather/')
+                .then(response => response.json())
+                .then(data => {
+                    var temperature = JSON.parse(data.temperature_2m);
+                    var precipitation = data.precipitation;
+                    var evapotranspiration = data.evapotranspiration;
+                    var windSpeed = data.wind_speed_10m;
+                    var soilTemperature = data.soil_temperature_6cm
 
-                // Check if x and y are valid numbers
-                if (!isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
-                    formData.append('x', x);
-                    formData.append('y', y);
 
-                    fetch('http://127.0.0.1:8000/calculate_weather/', {
-                        method: 'POST',
-                        body: formData,
-                    })
-                        .then(response => {
+                    temp_date = temperature.map((item => item.date))
+                    temp_value = temperature.map((item => item.temperature_2m))
 
-                            document.getElementById("precipitation_probability_value") = data.features[
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
+                    console.log(temp_value)
+
+                    var temperatureChart = new Chart(document.getElementById('temp_line_graph'), {
+                        type: 'line',
+                        data: {
+                            labels: temp_date,
+                            datasets: [{
+                                label: 'Temperature (°C)',
+                                data: temp_value,soil_data,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            legend: {
+                                display: true,
+                                position: "bottom",
+                                labels: {
+                                    fontColor: 'rgb(0, 0, 0)'
+                                }
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
                             }
-                            return response.text();
-                        })
-                        .then(data => {
-                            // Handle successful response
-                            console.log('Data successfully sent:', data);
-                        })
-                        .catch(error => {
-                            // Handle fetch operation errors
-                            console.error('There was a problem with the fetch operation:', error);
-                        });
-                } else {
-                    // Handle invalid x or y values
-                    console.error('Invalid x or y values:', x, y);
-                }
-            });
+                        }
+                    });
+
+                    precipitation_date = temperature.map((item => item.date))
+                    precipitation_value = temperature.map((item => item.precipitation))
+
+                    console.log(temp_value)
+
+                    var precipitationChart = new Chart(document.getElementById('precipitation_line_graph'), {
+                        type: 'line',
+                        data: {
+                            labels: precipitation_date,
+                            datasets: [{
+                                label: 'Recorded Precipitation ',
+                                data: precipitation_value,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            legend: {
+                                display: true,
+                                position: "bottom",
+                                labels: {
+                                    fontColor: 'rgb(0, 0, 0)'
+                                }
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                })
+
         });
+
     </script>
 
+        <!-- [ Main Content ] start -->
+        <div class="card-header">
+            <h5>Soil Mositure Data</h5>
 
-    <!-- [ Main Content ] start -->
-    <div class="card-header">
-        <h5>Soil Mositure Data</h5>
+            <div class="row">
 
-        <div class="row">
+                <!--[ daily sales section ] start-->
+                <div class="col-md-6 col-xl-4">
+                    <div class="card daily-sales">
+                        <div class="card-block">
+                            <h6 class="mb-4">Daily Island Wide Average</h6>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-9">
+                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">
 
-            <!--[ daily sales section ] start-->
-            <div class="col-md-6 col-xl-4">
-                <div class="card daily-sales">
-                    <div class="card-block">
-                        <h6 class="mb-4">Daily Island Wide Average</h6>
-                        <div class="row d-flex align-items-center">
-                            <div class="col-9">
-                                <h3 class="f-w-300 d-flex align-items-center m-b-0">
+                                        <i id="daily_avg_icon" class="feather text-c-green f-30 m-r-10"></i>
+                                        <span id="daily_avg_percentage"></span>
 
-                                    <i id="daily_avg_icon" class="feather text-c-green f-30 m-r-10"></i>
-                                    <span id="daily_avg_percentage"></span>
-
-                            </div>
-                            <div>
-                                <canvas id="daily_pie_chart"></canvas>
-                            </div>
-
-                            {% comment %} Update This {% endcomment %}
-                            <div class="col-3 text-right">
-                                <p id="daily_avg_value" class="m-b-0"></p>
-                            </div>
-                        </div>
-                        <div class="progress m-t-30" style="height: 7px;">
-                            <div id="daily_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
-                                 aria-valuenow=aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--[ daily sales section ] end-->
-            <!--[ Current  sales section ] starts-->
-            <div class="col-md-6 col-xl-4 py-0">
-                <div class="card current-sales">
-                    <div class="card-block">
-                        <h6 class="mb-4">Current Island Wide Average</h6>
-                        <div class="row d-flex align-items-center">
-                            <div class="col-9">
-                                <h3 class="f-w-300 d-flex align-items-center m-b-0">
-                                    <i id="current_avg_icon" class="feather  f-30 m-r-10"></i>
-                                    <span id="current_avg_percentage"></span>
-                            </div>
-                            <div>
+                                </div>
                                 <div>
-                                    <canvas id="current_pie_chart"></canvas>
+                                    <canvas id="daily_pie_chart"></canvas>
+                                </div>
+
+                                {% comment %} Update This {% endcomment %}
+                                <div class="col-3 text-right">
+                                    <p id="daily_avg_value" class="m-b-0"></p>
                                 </div>
                             </div>
-                            <div class="col-3 text-right">
-                                <p id="current_avg_value" class="m-b-0"></p>
+                            <div class="progress m-t-30" style="height: 7px;">
+                                <div id="daily_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
+                                     aria-valuenow=aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
-                        </div>
-                        <div class="progress m-t-30" style="height: 7px;">
-                            <div id="current_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
-                                 aria-valuenow=aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!--[ Monthly  sales section ] end-->
-            <!--[ year  sales section ] starts-->
-            <div class="col-md-6 col-xl-4">
-                <div class="card current-sales">
-                    <div class="card-block">
-                        <h6 class="mb-4">Daily Average For The Past 7 Days </h6>
-                        <div class="row d-flex align-items-center">
-                            <div class="col-9">
-                                <h3 class="f-w-300 d-flex align-items-center m-b-0">
-                                    <i id="monthly_avg_icon" class="feather  f-30 m-r-10"></i>
-                                    <span id="monthly_avg_percentage"></span>
-                                </h3>
-                            </div>
-                            <div class="col-9">
+                <!--[ daily sales section ] end-->
+                <!--[ Current  sales section ] starts-->
+                <div class="col-md-6 col-xl-4 py-0">
+                    <div class="card current-sales">
+                        <div class="card-block">
+                            <h6 class="mb-4">Current Island Wide Average</h6>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-9">
+                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">
+                                        <i id="current_avg_icon" class="feather  f-30 m-r-10"></i>
+                                        <span id="current_avg_percentage"></span>
+                                </div>
                                 <div>
-                                    <canvas id="monthly_pie_chart"></canvas>
+                                    <div>
+                                        <canvas id="current_pie_chart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-3 text-right">
+                                    <p id="current_avg_value" class="m-b-0"></p>
                                 </div>
                             </div>
-                            <div class="col-3 text-right">
-                                <p id="monthly_avg_value" class="m-b-0"></p>
+                            <div class="progress m-t-30" style="height: 7px;">
+                                <div id="current_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
+                                     aria-valuenow=aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
-                        </div>
-                        <div class="progress m-t-30" style="height: 7px;">
-                            <div id="monthly_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
-                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                 </div>
+                <!--[ Monthly  sales section ] end-->
+                <!--[ year  sales section ] starts-->
+                <div class="col-md-6 col-xl-4">
+                    <div class="card current-sales">
+                        <div class="card-block">
+                            <h6 class="mb-4">Daily Average For The Past 7 Days </h6>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-9">
+                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">
+                                        <i id="monthly_avg_icon" class="feather  f-30 m-r-10"></i>
+                                        <span id="monthly_avg_percentage"></span>
+                                    </h3>
+                                </div>
+                                <div class="col-9">
+                                    <div>
+                                        <canvas id="monthly_pie_chart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-3 text-right">
+                                    <p id="monthly_avg_value" class="m-b-0"></p>
+                                </div>
+                            </div>
+                            <div class="progress m-t-30" style="height: 7px;">
+                                <div id="monthly_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
+                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <br>
+                <!--[ year  sales section ] end-->
+
+            </div>
+        </div>
+
+
+        <br>
+        <div class="card-header">
+            <h5>Secondary Data</h5>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-2 col-xl-6 d-flex justify-content-start">
+                        <form id="sensorForm" method="post">
+                            {% csrf_token %}
+                            <label for="sensor_group_select">Sensor Group Location</label>
+                            <select required class="form-control" id="sensor_group_select"
+                                    name="sensor_group_select">
+                                <option value=""></option>
+                                {% for sensor_group in sensor_group_names %}
+                                    <option value="{{ sensor_group }}"
+                                            data-x="{{ sensor_group.sensor_group_location.y }}"
+                                            data-y="{{ sensor_group.sensor_group_location.x }}">
+                                        {{ sensor_group.sensor_group_name }}
+                                    </option>
+
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+
+                    <a class="col-md-2 col-xl-5 d-flex justify-content-end">
+                        <p class="m-0 mr-2">Data Queried from</p>
+                        <a href="https://open-meteo.com/"> <img src="https://open-meteo.com/favicon-32x32.png"
+                                                                alt="Open Meteo" class="align-self-center">
+                        </a>
+                </div>
             </div>
 
-            <br>
-            <!--[ year  sales section ] end-->
+            <div class="row">
+                <div class="col-md-6 col-xs-6 col-xl-5"><br><br>
+                    <div class="card yearly-sales">
+                        <div class="card-block">
+                            <h6 class="mb-4">Temperature </h6>
+                            <div style="width: 500px" class="row d-flex align-items-center">
+                                <div class="col-xl-9">
+                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">
 
-            <div class="card-header">
-                <h5>Secondary Data</h5>
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-2 col-xl-6 d-flex justify-content-start">
-                            <form id="sensorForm" method="post">
-                                {% csrf_token %}
-                                <label for="sensor_group_select">Sensor Group Location</label>
-                                <select required class="form-control" id="sensor_group_select"
-                                        name="sensor_group_select">
-                                    <option value=""></option>
-                                    {% for sensor_group in sensor_group_names %}
-                                        <option value="{{ sensor_group }}"
-                                                data-x="{{ sensor_group.sensor_group_location.y }}"
-                                                data-y="{{ sensor_group.sensor_group_location.x }}">
-                                            {{ sensor_group.sensor_group_name }}
-                                        </option>
+                                        <div class="col-3 text-right">
+                                            <p id="temp_value" class="m-b-0"></p>
+                                        </div>
+                                </div>
 
-                                    {% endfor %}
-                                </select>
-                            </form>
+                                <div>
+                                    <canvas style="width: 500px" id="temp_line_graph"></canvas>
+                                </div>
+
+                                <div class="col-3 text-right">
+                                    {% comment %} Update Here{% endcomment %}
+                                    <p id="daily_avg_value" class="m-b-0"></p>
+                                </div>
+                            </div>
+
                         </div>
-
-                        <a class="col-md-2 col-xl-5 d-flex justify-content-end">
-                            <p class="m-0 mr-2">Data Queried from</p>
-                            <a href="https://open-meteo.com/"> <img src="https://open-meteo.com/favicon-32x32.png"
-                                                                    alt="Open Meteo" class="align-self-center">
-                            </a>
                     </div>
                 </div>
 
@@ -381,201 +458,37 @@
                     <div class="col-md-6 col-xs-6 col-xl-5"><br><br>
                         <div class="card yearly-sales">
                             <div class="card-block">
-                                <h6 class="mb-4">Precipitation Probability</h6>
-                                <div class="row d-flex align-items-center">
-                                    <div class="col-9">
+                                <h6 class="mb-4">Precipitation </h6>
+                                <div style="width: 500px" class="row d-flex align-items-center">
+                                    <div class="col-xl-9">
                                         <h3 class="f-w-300 d-flex align-items-center  m-b-0">
 
                                             <div class="col-3 text-right">
-                                                <p id="precipitation_probability_value" class="m-b-0"></p>
+                                                <p id="precipitation_value" class="m-b-0"></p>
                                             </div>
-
                                     </div>
+
+                                    <div>
+                                        <canvas style="width: 500px" id="precipitation_line_graph"></canvas>
+                                    </div>
+
                                     <div class="col-3 text-right">
                                         {% comment %} Update Here{% endcomment %}
-                                        <p class="m-b-0">{{ yearly_avg_percentage }}%</p>
+                                        <p id="daily_avg_value" class="m-b-0"></p>
                                     </div>
                                 </div>
-                                <div class="progress m-t-30" style="height: 7px;">
-                                    <div class="progress-bar progress-c-theme" role="progressbar"
-                                         style="width: {{ yearly_avg_percentage }}%;"
-                                         aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
-
 
                     <div class="row">
-                        <div class="col-md-6 col-xs-6 col-xl-5"><br><br>
-                            <div class="card yearly-sales">
-                                <div class="card-block">
-                                    <h6 class="mb-4">Relative Humidity</h6>
-                                    <div class="row d-flex align-items-center">
-                                        <div class="col-9">
-                                            <h3 class="f-w-300 d-flex align-items-center  m-b-0">
 
-                                                {% if daily_avg > 45 %}
-                                                    <i class="feather icon-arrow-up text-c-green f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% else %}
-                                                    <i class="feather icon-arrow-down text-c-red f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% endif %}
-
-                                        </div>
-                                        <div class="col-3 text-right">
-                                            {% comment %} Update Here{% endcomment %}
-                                            <p class="m-b-0">{{ yearly_avg_percentage }}%</p>
-                                        </div>
-                                    </div>
-                                    <div class="progress m-t-30" style="height: 7px;">
-                                        <div class="progress-bar progress-c-theme" role="progressbar"
-                                             style="width: {{ yearly_avg_percentage }}%;"
-                                             aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-xs-6 col-xl-5"><br><br>
-                            <div class="card yearly-sales">
-                                <div class="card-block">
-                                    <h6 class="mb-4">Precipitation</h6>
-                                    <div class="row d-flex align-items-center">
-                                        <div class="col-9">
-                                            <h3 class="f-w-300 d-flex align-items-center  m-b-0">
-
-                                                {% if daily_avg > 45 %}
-                                                    <i class="feather icon-arrow-up text-c-green f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% else %}
-                                                    <i class="feather icon-arrow-down text-c-red f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% endif %}
-
-                                        </div>
-                                        <div class="col-3 text-right">
-                                            {% comment %} Update Here{% endcomment %}
-                                            <p class="m-b-0">{{ yearly_avg_percentage }}%</p>
-                                        </div>
-                                    </div>
-                                    <div class="progress m-t-30" style="height: 7px;">
-                                        <div class="progress-bar progress-c-theme" role="progressbar"
-                                             style="width: {{ yearly_avg_percentage }}%;"
-                                             aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2 col-xl-4">
-                            <div class="card yearly-sales">
-                                <div class="card-block">
-                                    <h6 class="mb-4">Hourly Temperature Reading </h6>
-                                    <div class="row d-flex align-items-center">
-                                        <div class="col-9">
-                                            <h3 class="f-w-300 d-flex align-items-center  m-b-0">
-
-                                                {% if daily_avg > 45 %}
-                                                    <i class="feather icon-arrow-up text-c-green f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% else %}
-                                                    <i class="feather icon-arrow-down text-c-red f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% endif %}
-
-                                        </div>
-                                        <div class="col-3 text-right">
-                                            {% comment %} Update Here{% endcomment %}
-                                            <p class="m-b-0">{{ yearly_avg_percentage }}%</p>
-                                        </div>
-                                    </div>
-                                    <div class="progress m-t-30" style="height: 7px;">
-                                        <div class="progress-bar progress-c-theme" role="progressbar"
-                                             style="width: {{ yearly_avg_percentage }}%;"
-                                             aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2 col-xl-4">
-                            <div class="card yearly-sales">
-                                <div class="card-block">
-                                    <h6 class="mb-4">Evapotranspiration</h6>
-                                    <div class="row d-flex align-items-center">
-                                        <div class="col-9">
-                                            <h3 class="f-w-300 d-flex align-items-center  m-b-0">
-
-                                                {% if daily_avg > 45 %}
-                                                    <i class="feather icon-arrow-up text-c-green f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% else %}
-                                                    <i class="feather icon-arrow-down text-c-red f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% endif %}
-
-                                        </div>
-                                        <div class="col-3 text-right">
-                                            {% comment %} Update Here{% endcomment %}
-                                            <p class="m-b-0">{{ yearly_avg_percentage }}%</p>
-                                        </div>
-                                    </div>
-                                    <div class="progress m-t-30" style="height: 7px;">
-                                        <div class="progress-bar progress-c-theme" role="progressbar"
-                                             style="width: {{ yearly_avg_percentage }}%;"
-                                             aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2 col-xl-4">
-                            <div class="card yearly-sales">
-                                <div class="card-block">
-                                    <h6 class="mb-4">Wind Speeds</h6>
-                                    <div class="row d-flex align-items-center">
-                                        <div class="col-9">
-                                            <h3 class="f-w-300 d-flex align-items-center  m-b-0">
-
-                                                {% if daily_avg > 45 %}
-                                                    <i class="feather icon-arrow-up text-c-green f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% else %}
-                                                    <i class="feather icon-arrow-down text-c-red f-30 m-r-10"></i>
-                                                    {{ yearly_avg }}
-                                                    </h3>
-                                                {% endif %}
-
-                                        </div>
-                                        <div class="col-3 text-right">
-                                            {% comment %} Update Here{% endcomment %}
-                                            <p class="m-b-0">{{ yearly_avg_percentage }}%</p>
-                                        </div>
-                                    </div>
-                                    <div class="progress m-t-30" style="height: 7px;">
-                                        <div class="progress-bar progress-c-theme" role="progressbar"
-                                             style="width: {{ yearly_avg_percentage }}%;"
-                                             aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                </div>
 
-                <!-- [ statistics year chart ] start -->
-                <!-- [ Main Content ] end -->
+
+                    <!-- [ statistics year chart ] start -->
+                    <!-- [ Main Content ] end -->
 
 
 

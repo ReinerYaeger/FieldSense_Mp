@@ -98,3 +98,5 @@ class MapDataConsumer(AsyncWebsocketConsumer):
                     'sensor_group_name': "University of Technology",
                 })
             )
+
+

@@ -1,4 +1,205 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block breadcrumbs %}{% endblock breadcrumbs %}
+{% block extrastyle %}
+    <!-- morris css -->
+    <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
+    {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
+
+
+    <style>
+        #map {
+            height: 180px;
+        }
+
+        .parent-fit {
+            flex-grow: 1;
+            border: none;
+            margin: 0;
+            padding: 0;
+
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin=""/>
+{% endblock extrastyle %}
+
+
+{% block content %}
+
+    <script>
+        var marker;
+        var map;
+    </script>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Leaflet map
+            map = L.map('map').setView([18.109656, -77.297565], 7);
+            var spatialExtent = L.latLngBounds([17.7012, -78.3666], [18.5242, -76.199]);
+
+            map.setMaxBounds(spatialExtent);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 22,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            map.on('click', function (e) {
+                map.off('click', e);
+                lat = e.latlng.lat;
+                long = e.latlng.lng;
+
+                if (marker) { // check
+                    map.removeLayer(marker); // remove
+                }
+                marker = L.marker([lat, long]).addTo(map);
+                document.getElementById("lat-value").value = lat;
+                document.getElementById("long-value").value = long;
+
+            });
+            pointToLocation()
+
+        });
+
+        function pointToLocation() {
+
+            if (marker) { // check
+                map.removeLayer(marker); // remove
+            }
+            long = document.getElementById("long-value").value
+            lat = document.getElementById("lat-value").value
+
+            if (long < -78 || long > 76) {
+                document.getElementById("long-value").value = -77.36572265625001
+                document.getElementById("lat-value").value = 18.08946706198645
+            } else if (lat < 17 && lat > 18.59) {
+                document.getElementById("long-value").value = -77.36572265625001
+                document.getElementById("lat-value").value = 18.08946706198645
+            }
+
+            marker = L.marker([lat, long]).addTo(map);
+        }
+    </script>
+
+    <script>
+
+        function changeForm() {
+            if (document.getElementById('sensor_group_radio').checked()) {
+
+            } else if (document.getElementById('island_wide_radio').checked()) {
+
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <div class="auth-wrapper">
+        <div class="auth-content">
+            <div class="auth-bg">
+                <span class="r"></span>
+                <span class="r s"></span>
+                <span class="r s"></span>
+                <span class="r"></span>
+            </div>
+            <div class="card">
+                <form method="post" class="card-body text-center">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <i class="feather icon-user-plus auth-icon"></i>
+                    </div>
+                    <h3 class="mb-4">Generate Report</h3>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radio"
+                                       id="island_wide_radio" onchange="changeForm()">
+                                <label class="form-check-label" for="radio">
+                                    Island Wide
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radio"
+                                       id="sensor_group_radio" onchange="changeForm()"
+                                       >
+                                <label class=" form-check-label" for="radio">
+                                    Sensor Group
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+{#            sensor group form start here#}
+                    <div id="sensor_group_form">
+                        <div class="mb-9">
+                            <div class="map">
+                                <div onload="init()" id="map" class="map parent-fit"></div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="lat" class="form-label">Latitude</label>
+                                <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"
+                                       value="18.109656" id="lat-value">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="long" class="form-label">Longitude</label>
+                                <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"
+                                       value="-77.297565" id="long-value">
+                            </div>
+
+                        </div>
+                        <br>
+
+                        <p> We will contact you in the event there is a perceived abnormality in the environment </p>
+                        <br>
+
+                        <div class="mb-3">
+                            <label for="email_address" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email_address" aria-describedby="emailHelp">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Number</label>
+                            <input type="text" class="form-control" id="phone_number">
+                        </div>
+                        <button type="submit" data-toggle="modal" data-target="#exampleModal" class="btn btn-primary">
+                            Submit
+                        </button>
+                </form>
+            </div>
+{#            sensor group form ends here#}
+
+        </div>
+    </div>
+    </div>
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock content %}
