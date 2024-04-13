@@ -87,7 +87,6 @@ def upload_data(data):
         print(f"Sensor date/time: {sensor_date_time}")
 
         try:
-
             db_cursor.execute("""INSERT INTO public.sensor_collected_data(sensor_name, sensor_data, sensor_date_time, sensor_group_name_id)
                     VALUES(%s, %s, %s, %s);""",
                               (sensor_name, sensor_data , sensor_date_time, 'University of Technology'))

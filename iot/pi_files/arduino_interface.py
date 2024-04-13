@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', filename
 logger = logging.getLogger(__name__)
 
 
-def get_serial_data(sleep_sec=0):
+def get_serial_data(sleep_sec=1):
     try:
         ser = serial.Serial('COM7', 9600, timeout=1)
         ser.flushInput()
@@ -43,7 +43,7 @@ def get_serial_data(sleep_sec=0):
                             if data_value:
                                 analog_dict[prefix[:-1]] = data_dict
 
-            #process_data(analog_dict)
+            process_data(analog_dict)
             print(analog_dict)
             logging.info(analog_dict)
 
@@ -77,6 +77,7 @@ def get_serial_data(sleep_sec=0):
 
 
 def fallback():
+
     analog_dict = {
         'A0': {'soil_moisture_data': [], 'timestamp': []},
         'A1': {'soil_moisture_data': [], 'timestamp': []},
@@ -89,7 +90,6 @@ def fallback():
         A1_value = random.uniform(1, 0.202020)
         A2_value = random.uniform(1, 0.202020)
 
-        A0_value
 
         decoded_string = f"A0:{A0_value:.5f}\tA1:{A1_value:.5f}\tA2:{A2_value:.5f}"
         output_list = decoded_string.split("\t")
@@ -110,6 +110,7 @@ def fallback():
         process_data(analog_dict)
         print(analog_dict)
         logging.info(analog_dict)
+
 
 
 def process_data(analog_dict):

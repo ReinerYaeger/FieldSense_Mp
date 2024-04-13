@@ -18,6 +18,8 @@ class SensorGroup(gis_model.Model):
         verbose_name_plural = 'sensor_group'
 
 
+
+
 class SensorCollectedData(gis_model.Model):
     sensor_group_name = gis_model.ForeignKey(SensorGroup, on_delete=gis_model.CASCADE)
     sensor_name = gis_model.CharField(max_length=10)
@@ -30,6 +32,7 @@ class SensorCollectedData(gis_model.Model):
     class Meta:
         db_table = 'sensor_collected_data'
         verbose_name_plural = 'sensor_data'
+
 
 
 class SensorGroupManager(gis_model.Manager):

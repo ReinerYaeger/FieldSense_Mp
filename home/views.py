@@ -44,7 +44,6 @@ def calculate_weather(request):
 
         # evapotranspiration = np.mean(weather_data_dict["daily_data"]["et0_fao_evapotranspiration"])
 
-
     return JsonResponse(weather_data_dict)
 
 
@@ -57,7 +56,6 @@ def tables(request):
 
 
 def live_analytics(request):
-
     context = {
         'segment': 'live_analytics',
         'username': 'One',
@@ -100,13 +98,14 @@ def contribute(request):
 
     }
 
-    return render(request,"pages/application_sensor_group.html",context)
+    return render(request, "pages/application_sensor_group.html", context)
 
 
 def report(request):
     context = {
         'segment': 'report',
         'username': 'One',
+        'sensor_group_names': get_sensor_group_names(),
     }
     return render(request, "pages/report.html", context)
 
@@ -161,8 +160,6 @@ def weather_data(x=18.0182222, y=-76.7440833):
 
     # Process first location. Add a for-loop for multiple locations or weather models
     for response in responses:
-
-
         print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
         print(f"Elevation {response.Elevation()} m asl")
         print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
@@ -261,7 +258,9 @@ def average_reading_past_week(request):
         date = today - timedelta(days=i)
 
         # Query the average sensor data for the current date
-        avg_reading = SensorCollectedData.objects.filter(sensor_date_time__date=date).aggregate(avg_reading=Avg('sensor_data'))['avg_reading']
+        avg_reading = \
+            SensorCollectedData.objects.filter(sensor_date_time__date=date).aggregate(avg_reading=Avg('sensor_data'))[
+                'avg_reading']
         if avg_reading == None:
             avg_reading = 0
         # Store the date and average reading
@@ -270,3 +269,17 @@ def average_reading_past_week(request):
 
     # Return data as JSON
     return JsonResponse({'dates': dates, 'average_readings': average_readings})
+
+
+def database_coms(request):
+    start_time = datetime(2024, 4, 5, 14, 58, 37)
+
+
+    end_time = datetime(2024, 4, 5, 14, 58, 40)
+
+    filtered_data = SensorCollectedData.objects.filter(sensor_date_time__gte=start_time, sensor_date_time__lte=end_time)
+
+    for data in filtered_data:
+        print(data)
+
+    return HttpResponse()

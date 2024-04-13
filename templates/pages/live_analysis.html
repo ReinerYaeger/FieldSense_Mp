@@ -37,6 +37,23 @@
                         }
                     },
                     scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                min: new Date().setHours(0, 0, 0, 0), // Set min to today's date at 00:00:00
+                                max: new Date().setHours(24, 0, 0, 0), // Set max to today's date at 24:00:00 (12 am next day)
+                                unit: 'hour',
+                                stepSize: 1,
+                                displayFormats: {
+                                    hour: 'HH:mm' // Format for displaying hours
+                                }
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 24 // Maximum number of ticks to display
+                            }
+                        },
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true
@@ -49,20 +66,19 @@
             const ctx = document.getElementById('acquisitions').getContext('2d');
             const avgChart = new Chart(ctx, avgChartConfig);
 
-            // WebSocket event listener
+
             dataSocket.addEventListener('message', function (e) {
                 const graphData = JSON.parse(e.data);
                 console.log(graphData);
 
-                // Update labels and data arrays
+
                 avgChart.data.labels.push(graphData.label);
                 avgChart.data.datasets[0].data.push(graphData.avg_sensor_data);
 
 
-                // Maintain a maximum number of data points
                 const maxDataPoints = 100;
                 if (avgChart.data.labels.length > maxDataPoints) {
-                    avgChart.data.labels.shift();
+                    //avgChart.data.labels.shift();
                     avgChart.data.datasets[0].data.shift();
                     avgChart.data.datasets[1].data.shift();
                     avgChart.data.datasets[2].data.shift();
@@ -77,20 +93,20 @@
     <!-- [ Main Content ] start -->
     <div class="row">
         <!-- [ Chart Js  ] start -->
-    {% for groups in sensor_group %}
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h5> {{ groups.sensor_group_name  }} Sensor Groups</h5>
-                </div>
-                <div class="card-block">
-                    <div class="container">
-                        <canvas width="900" height="300" aria-label="Chart" role="img" id="acquisitions"></canvas>
+        {% for groups in sensor_group %}
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5> {{ groups.sensor_group_name }} Sensor Groups</h5>
                     </div>
-                    {% comment %}<div id="morris-line-chart" class="ChartShadow" style="height:300px"></div>{% endcomment %}
+                    <div class="card-block">
+                        <div class="container">
+                            <canvas width="900" height="300" aria-label="Chart" role="img" id="acquisitions"></canvas>
+                        </div>
+                        {% comment %}<div id="morris-line-chart" class="ChartShadow" style="height:300px"></div>{% endcomment %}
+                    </div>
                 </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
     </div>
 {% endblock %}

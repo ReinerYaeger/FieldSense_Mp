@@ -23,15 +23,14 @@
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"/>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+
 {% endblock extrastyle %}
 
 
 {% block content %}
-
-    <script>
-        var marker;
-        var map;
-    </script>
 
     <script>
 
@@ -58,9 +57,14 @@
                 document.getElementById("long-value").value = long;
 
             });
+
+            var searchLayer = L.geoJson().addTo(map);
+            L.map('map', {searchControl: {layer: searchLayer}});
+
             pointToLocation()
 
         });
+
 
         function pointToLocation() {
 
@@ -86,6 +90,12 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/@geoapify/leaflet-address-search-plugin@^1/dist/L.Control.GeoapifyAddressSearch.min.css"/>
+    <script src="https://unpkg.com/@geoapify/leaflet-address-search-plugin@^1/dist/L.Control.GeoapifyAddressSearch.min.js"></script>
+
+
     <div class="auth-wrapper">
         <div class="auth-content">
             <div class="auth-bg">
@@ -99,9 +109,10 @@
                     {% csrf_token %}
 
                     <div class="mb-4">
-                        <i class="feather icon-user-plus auth-icon"></i>
+                        <i class="feather icon-map-pin auth-icon"></i>
                     </div>
                     <h3 class="mb-4">We'll need some Information</h3>
+                    <br>
                     <h5> Please Select The Location Of The Property</h5>
 
                     <div class="mb-3">
@@ -149,7 +160,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Conformation</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

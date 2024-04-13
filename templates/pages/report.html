@@ -91,12 +91,12 @@
                 <span class="r s"></span>
                 <span class="r"></span>
             </div>
-            <div class="card" style="width: 25rem;">
+            <div class="card" style="width: 30rem;">
                 <form method="post" class="card-body text-center">
                     {% csrf_token %}
 
                     <div class="mb-4">
-                        <i class="feather icon-user-plus auth-icon"></i>
+                        <i class="feather icon-file-text auth-icon"></i>
                     </div>
                     <h3 class="mb-6">Generate Report</h3>
 
@@ -104,7 +104,7 @@
                         <div class="col-md-6">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="radio"
-                                       id="island_wide_radio" onchange="changeForm()">
+                                       checked id="island_wide_radio" onchange="changeForm()">
                                 <label class="form-check-label" for="radio">
                                     Island Wide
                                 </label>
@@ -135,6 +135,115 @@
                                        value="-77.297565" id="long-value">
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <b><h5>Select Variables</h5></b>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                                    <label class="form-check-label" for="flexCheckDefault">Soil Moisture 10cm</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                                    <label class="form-check-label" for="flexCheckDefault">Soil Temperature 0cm</label>
+                                </div>
+
+                                <!-- Checked checkbox -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
+                                           checked/>
+                                    <label class="form-check-label" for="flexCheckChecked">Temperature 80m</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
+                                           checked/>
+                                    <label class="form-check-label" for="flexCheckChecked">Evapotranspiration</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
+                                           checked/>
+                                    <label class="form-check-label" for="flexCheckChecked">Wind Speed 10m</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <b><h5>Statistical Methods</h5></b>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                                    <label class="form-check-label" for="flexCheckDefault">Time Series Analysis</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                                    <label class="form-check-label" for="flexCheckDefault">Time Series Forecasting</label>
+                                </div>
+
+                                <!-- Checked checkbox -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
+                                           checked/>
+                                    <label class="form-check-label" for="flexCheckChecked">Temperature 80m</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
+                                           checked/>
+                                    <label class="form-check-label" for="flexCheckChecked">Evapotranspiration</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
+                                           checked/>
+                                    <label class="form-check-label" for="flexCheckChecked">Wind Speed 10m</label>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+
+
+                        <button type="submit" data-toggle="modal" data-target="#exampleModal" class="btn btn-primary">
+                            Submit
+                        </button>
+
+
+                    </div>
+
+                    {#            sensor group form start here#}
+                    <div hidden id="sensor_group_form">
+
+                        <div class="mb-3">
+                            <label for="sensor_group_select" class="form-label">Sensor Group</label>
+                            <select required class="form-control" id="sensor_group_select"
+                                    name="sensor_group_select">
+
+                                {% for sensor_group in sensor_group_names %}
+                                    <option value="{{ sensor_group }}"
+                                            data-x="{{ sensor_group.sensor_group_location.y }}"
+                                            data-y="{{ sensor_group.sensor_group_location.x }}">
+                                        {{ sensor_group.sensor_group_name }}
+                                    </option>
+
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="s-date" class="form-label">Start Date</label>
+                                <input onchange="" step=".0000001" type="datetime" class="form-control"
+                                        id="lat-value">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="e-date" class="form-label">End Date</label>
+                                <input onchange="" step=".0000001" type="datetime" class="form-control"
+                                       id="long-value">
+                            </div>
+                        </div>
                         <b><h5>Select Variables</h5></b>
 
                         <div class="form-check">
@@ -162,51 +271,9 @@
                             <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked/>
                             <label class="form-check-label" for="flexCheckChecked">Wind Speed 10m</label>
                         </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked/>
-                            <label class="form-check-label" for="flexCheckChecked">Wind Speed 10m</label>
-                        </div>
-
-
-                    </div>
-
-                    {#            sensor group form start here#}
-                    <div hidden id="sensor_group_form">
-                        <div class="mb-9">
-                            <div class="map">
-                                <div onload="init()" id="map" class="map parent-fit"></div>
-                            </div>
-                        </div>
                         <br>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="lat" class="form-label">Latitude</label>
-                                <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"
-                                       value="18.109656" id="lat-value">
-                            </div>
 
-                            <div class="col-md-6">
-                                <label for="long" class="form-label">Longitude</label>
-                                <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"
-                                       value="-77.297565" id="long-value">
-                            </div>
-
-                        </div>
-                        <br>
-
-                        <p> We will contact you in the event there is a perceived abnormality in the environment </p>
-                        <br>
-
-                        <div class="mb-3">
-                            <label for="email_address" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email_address" aria-describedby="emailHelp">
-                        </div>
-                        <div class="mb-3">
-                            <label for="phone_number" class="form-label">Number</label>
-                            <input type="text" class="form-control" id="phone_number">
-                        </div>
                         <button type="submit" data-toggle="modal" data-target="#exampleModal" class="btn btn-primary">
                             Submit
                         </button>
