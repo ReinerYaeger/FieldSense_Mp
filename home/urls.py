@@ -20,7 +20,6 @@ urlpatterns = [
   path('weather_data/', views.weather_data, name='weather_data'),
   path('calculate_weather/', views.calculate_weather, name='calculate_weather'),
 
-  path('database_coms/',views.database_coms,name="database_coms"),
 
 
   path('get_day_avg_sensor_data/', views.get_day_avg_sensor_data, name='get_day_avg_sensor_data'),

@@ -56,6 +56,35 @@
                     minimized: false
                 }
             ).addTo(map);
+
+            var temp_per;
+
+            fetch('http://127.0.0.1:8000/calculate_weather/')
+                .then(response => response.json())
+                .then(data => {
+                    var temperature = JSON.parse(data.temperature_2m);
+                    var precipitation = data.precipitation;
+                    var evapotranspiration = data.evapotranspiration;
+                    var windSpeed = data.wind_speed_10m;
+                    var soilTemperature = data.soil_temperature_6cm
+
+                    let temp_date = temperature.map((item => item.date))
+                    let temp_value = temperature.map((item => item.temperature_2m))
+                    let temp_sum = temp_value.reduce((acc,curr)=>acc+curr,0);
+                    let temp_avg =temp_sum / temp_value.length;
+                    temp_per = (temp_avg).toFixed(2)
+
+
+                    console.log(temp_value)
+
+                    precipitation_date = temperature.map((item => item.date))
+                    precipitation_value = temperature.map((item => item.precipitation))
+
+                    console.log(temp_value)
+                })
+
+
+
             fetch('http://127.0.0.1:8000/sensor_location/')
                 .then(response => response.json())
                 .then(location_data => {
@@ -76,9 +105,16 @@
                                        let  value = data[i].features[0].properties.sensor_data
                                         avg_sensor_data += value;
                                     }
-                                    avg_sensor_data = avg_sensor_data / count
+                                    console.log(avg_sensor_data)
+                                    avg_sensor_data = avg_sensor_data / 3
 
-                                    const popupContent = "Sensor Group: " + feature.id + "\n Current Avg Sensor Reading " +avg_sensor_data +  " \n\n " +  data[0].features[0].properties.sensor_date_time;
+                                    avg_per = (avg_sensor_data * 10).toFixed(2)
+                                    avg_value = (avg_sensor_data).toFixed(5)
+
+
+
+                                    const popupContent = "<b>Sensor Group: " + feature.id + "</b><br><br> Current Moisture Sensor Reading: "
+                                        +avg_per +  "% <br>" +  "Ambient Temperature: "+temp_per +"°C <br>"+ "Soil Temperature: " + "°C <br>" + "Precipitation: "  ;
                                     var marker = L.marker([lat, lng]).addTo(map);
                                     if (popupContent) {
                                         marker.bindPopup(popupContent);

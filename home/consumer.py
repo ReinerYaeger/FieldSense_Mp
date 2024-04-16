@@ -4,7 +4,7 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.db.models import Avg
 from .models import SensorCollectedData
-
+from .views import calculate_weather
 
 @sync_to_async
 def get_avg_sensor_data(sensor_name):
@@ -23,6 +23,7 @@ def get_avg_sensor_data_per_group():
         avg_data_per_group.append({'group_name': group, 'avg_sensor_data': avg_data_value})
 
     return avg_data_per_group
+
 
 
 @sync_to_async
@@ -100,3 +101,11 @@ class MapDataConsumer(AsyncWebsocketConsumer):
             )
 
 
+class WeatherData(AsyncWebsocketConsumer):
+
+    async def connect(self):
+        await self.accept()
+
+        await self.send(
+            json.dumps(calculate_weather())
+        )
