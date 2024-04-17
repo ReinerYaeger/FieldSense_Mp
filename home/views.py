@@ -149,10 +149,17 @@ def weather_data(x=18.0182222, y=-76.7440833):
 
     # Make sure all required weather variables are listed here
     # The order of variables in hourly or daily is important to assign them correctly below
-    url = "https://api.open-meteo.com/v1/forecast"
+
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    seven_days_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    print(today_date)
+    print(seven_days_ago)
+    url = "https://archive-api.open-meteo.com/v1/archive"
     params = {
         "latitude": x,
         "longitude": y,
+        "start_date": str(seven_days_ago),
+        "end_date": str(today_date),
         "hourly": ["temperature_2m", "precipitation", "evapotranspiration", "et0_fao_evapotranspiration",
                    "wind_speed_10m", "temperature_80m", "soil_temperature_6cm", 'direct_radiation']
     }
@@ -218,7 +225,7 @@ def weather_data(x=18.0182222, y=-76.7440833):
         'precipitation': precipitation,
         'wind_speed_10m': wind_speed_10m,
         'soil_temperature_6cm': soil_temperature_6cm,
-        'direct_radiation':direct_radiation,
+        'direct_radiation': direct_radiation,
     }
 
     return weather_data_dict
