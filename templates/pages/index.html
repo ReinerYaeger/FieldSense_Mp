@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extrastyle %}
-    <script src="{% static 'assets/js/pages/chart-js.js' %}"></script>
+
     <!-- morris css -->
     <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
@@ -214,9 +214,10 @@
                 .then(data => {
                     var temperature = JSON.parse(data.temperature_2m);
                     var precipitation = JSON.parse(data.precipitation);
-                    var evapotranspiration = JSON.parse(data.evapotranspiration);
+                    var evapotranspiration = JSON.parse(data.et0_fao_evapotranspiration);
                     var direct_radiation = JSON.parse(data.direct_radiation);
-                    var soil_temperature = JSON.parse(data.soil_temperature_6cm);
+                    var relative_humidity = JSON.parse(data.relative_humidity_2m);
+                    var soil_temperature = JSON.parse(data.soil_temperature_0_to_7cm);
 
                     temp_date = temperature.map((item => item.date))
                     temp_value = temperature.map((item => item.temperature_2m))
@@ -290,7 +291,7 @@
                     });
 
                     evapotranspiration_date = evapotranspiration.map((item => item.date))
-                    evapotranspiration_value = evapotranspiration.map((item => item.evapotranspiration))
+                    evapotranspiration_value = evapotranspiration.map((item => item.et0_fao_evapotranspiration))
 
                     console.log(evapotranspiration_date)
                     console.log(evapotranspiration_value)
@@ -331,13 +332,49 @@
 
                     console.log(evapotranspiration_value)
 
-                    var DirectRadiation = new Chart(document.getElementById('direct_radiation_line_graph'), {
+                    var directRadiation = new Chart(document.getElementById('direct_radiation_line_graph'), {
                         type: 'line',
                         data: {
                             labels: direct_radiation_date,
                             datasets: [{
                                 label: 'Direct Radiation ',
                                 data: direct_radiation_value,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            legend: {
+                                display: true,
+                                position: "bottom",
+                                labels: {
+                                    fontColor: 'rgb(0, 0, 0)'
+                                }
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+
+                    soil_temp_date = soil_temperature.map((item => item.date))
+                    soil_temp_value = soil_temperature.map((item => item.soil_temperature_0_to_7cm))
+
+                    console.log(evapotranspiration_value)
+
+                    var soilTempChart = new Chart(document.getElementById('soil_temp_line_graph'), {
+                        type: 'line',
+                        data: {
+                            labels: soil_temp_date,
+                            datasets: [{
+                                label: 'Soil Temperature (°C)',
+                                data: soil_temp_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
                                 borderWidth: 1,
                                 fill: false
@@ -362,19 +399,19 @@
                         }
                     });
 
-                    soil_temp_date = soil_temperature.map((item => item.date))
-                    soil_temp_value = soil_temperature.map((item => item.soil_temperature_6cm))
+                    relative_humidity_date = relative_humidity.map((item => item.date))
+                    relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
+                    console.log(temp_value)
 
-                    console.log(evapotranspiration_value)
-
-                    var SoilTempChart = new Chart(document.getElementById('soil_temp_line_graph'), {
+                    var relativeHumidityChart = new Chart(document.getElementById('relative_humidity_line_graph'), {
                         type: 'line',
                         data: {
-                            labels: soil_temp_date,
+                            labels: relative_humidity_date,
                             datasets: [{
-                                label: 'Soil Temperature (°C)',
+                                label: 'Relative Humidity (%)',
+                                data: relative_humidity_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
+                                borderWidth: 2,
                                 fill: false
                             }]
                         },
@@ -410,7 +447,7 @@
         <div class="row">
 
             <!--[ daily sales section ] start-->
-            <div class="col-md-6 col-xl-4">
+            <div class="col">
                 <div class="card daily-sales">
                     <div class="card-block">
                         <h6 class="mb-4">Daily Island Wide Average</h6>
@@ -440,7 +477,7 @@
             </div>
             <!--[ daily sales section ] end-->
             <!--[ Current  sales section ] starts-->
-            <div class="col-md-6 col-xl-4 py-0">
+            <div class="col">
                 <div class="card current-sales">
                     <div class="card-block">
                         <h6 class="mb-4">Current Island Wide Average</h6>
@@ -467,37 +504,7 @@
                 </div>
             </div>
             <!--[ Monthly  sales section ] end-->
-            <!--[ year  sales section ] starts-->
-            <div class="col-md-6 col-xl-4">
-                <div class="card current-sales">
-                    <div class="card-block">
-                        <h6 class="mb-4">Daily Average For The Past 7 Days </h6>
-                        <div class="row d-flex align-items-center">
-                            <div class="col-9">
-                                <h3 class="f-w-300 d-flex align-items-center m-b-0">
-                                    <i id="monthly_avg_icon" class="feather  f-30 m-r-10"></i>
-                                    <span id="monthly_avg_percentage"></span>
-                                </h3>
-                            </div>
-                            <div class="col-9">
-                                <div>
-                                    <canvas id="monthly_pie_chart"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-3 text-right">
-                                <p id="monthly_avg_value" class="m-b-0"></p>
-                            </div>
-                        </div>
-                        <div class="progress m-t-30" style="height: 7px;">
-                            <div id="monthly_progress_bar" class="progress-bar progress-c-theme" role="progressbar"
-                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <br>
-            <!--[ year  sales section ] end-->
 
         </div>
     </div>
@@ -505,7 +512,7 @@
 
     <br>
     <div class="card-header">
-        <h5>Secondary Data</h5>
+        <h5>Data From The Past 7 Days </h5>
         <div class="container">
             <div class="row">
                 <div class="col-md-2 col-xl-6 d-flex justify-content-start">
@@ -541,7 +548,7 @@
             <div class="col"><br><br>
                 <div class="card yearly-sales">
                     <div class="card-block">
-                        <h6 class="mb-4">Soil Temperature</h6>
+                        <h6 class="mb-4">Soil Temperature (0-7cm)</h6>
                         <div style="width: 500px" class="row d-flex align-items-center">
                             <div class="col-xl-9">
                                 <h3 class="f-w-300 d-flex align-items-center  m-b-0">
@@ -567,7 +574,7 @@
             <div class="col"><br><br>
                 <div class="card yearly-sales">
                     <div class="card-block">
-                        <h6 class="mb-4">Temperature </h6>
+                        <h6 class="mb-4">Ambient Temperature (2m) </h6>
                         <div style="width: 500px" class="row d-flex align-items-center">
                             <div class="col-xl-9">
                                 <h3 class="f-w-300 d-flex align-items-center  m-b-0">
@@ -594,7 +601,7 @@
             <div class="col"><br><br>
                 <div class="card yearly-sales">
                     <div class="card-block">
-                        <h6 class="mb-4">Precipitation </h6>
+                        <h6 class="mb-4">Precipitation (mm) </h6>
                         <div style="width: 500px" class="row d-flex align-items-center">
                             <div class="col-xl-9">
                                 <h3 class="f-w-300 d-flex align-items-center  m-b-0">
@@ -621,7 +628,7 @@
             <div class="col"><br><br>
                 <div class="card yearly-sales">
                     <div class="card-block">
-                        <h6 class="mb-4">Evapotranspiration </h6>
+                        <h6 class="mb-4">Evapotranspiration (mm) </h6>
                         <div style="width: 500px" class="row d-flex align-items-center">
                             <div class="col-xl-9">
                                 <h3 class="f-w-300 d-flex align-items-center  m-b-0">
@@ -648,19 +655,29 @@
             <div class="col"><br><br>
                 <div class="card yearly-sales">
                     <div class="card-block">
-                        <h6 class="mb-4">Solar Radiation  </h6>
+                        <h6 class="mb-4">Direct Solar Radiation (W/m²) </h6>
                         <h3 class="f-w-300 d-flex align-items-center  m-b-0">
                             <p id="direct_radiation_value" class="m-b-0"></p>
 
                             <div>
                                 <canvas style="width: 500px" id="direct_radiation_line_graph"></canvas>
                             </div>
-
-
                     </div>
                 </div>
+            </div>
 
+            <div class="col"><br><br>
+                <div class="card yearly-sales">
+                    <div class="card-block">
+                        <h6 class="mb-4">Relative Humidity % </h6>
+                        <h3 class="f-w-300 d-flex align-items-center  m-b-0">
+                            <p id="direct_radiation_value" class="m-b-0"></p>
 
+                            <div>
+                                <canvas style="width: 500px" id="relative_humidity_line_graph"></canvas>
+                            </div>
+                    </div>
+                </div>
             </div>
 
             <div class="row">

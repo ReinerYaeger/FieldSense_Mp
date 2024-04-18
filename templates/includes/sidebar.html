@@ -42,6 +42,11 @@
                     </ul>
                 </li>
 
+            <li class="nav-item {% if 'environmental_statistics' in segment %}active{% endif %}">
+                    <a href="{% url 'environmental_statistics' %}" class="nav-link "><span class="pcoded-micon"><i
+                            class="feather icon-crosshair "></i></span><span class="pcoded-mtext">Forecast</span></a>
+                </li>
+
                 <li class="nav-item {% if 'live_analytics' in segment %}active{% endif %}">
                     <a href="{% url 'live_analytics' %}" class="nav-link "><span class="pcoded-micon"><i
                             class="feather icon-activity "></i></span><span
@@ -60,7 +65,8 @@
 
                 <li class="nav-item {% if 'contribute' in segment %}active{% endif %}">
                     <a href="{% url 'contribute' %}" class="nav-link "><span class="pcoded-micon"><i
-                            class="feather icon-share-2"></i></span><span class="pcoded-mtext">Become a Contributer </span></a>
+                            class="feather icon-share-2"></i></span><span
+                            class="pcoded-mtext">Become a Contributer </span></a>
                 </li>
 
                 {% if user.is_authenticated %}
@@ -100,6 +106,7 @@
                             >
                                 <a href="javascript:" class="nav-link ">
                                     <span class="pcoded-micon"><i class=">
+
 
                                             {% if app.icon %}{{ app.icon }} {% else %} feather icon-box {% endif %}"></i></span>
                                     <span class="pcoded-mtext">{{ app.label|slice:10 }}{% if app.label|length > 10 %}

@@ -65,6 +65,26 @@ def live_analytics(request):
     return render(request, "pages/live_analysis_old.html", context)
 
 
+def general_information(request):
+    context = {
+        'segment': 'live_analytics',
+        'username': 'One',
+        'sensor_group': get_sensor_group_names(),
+    }
+
+    return render(request, "pages/live_analysis_old.html", context)
+
+
+def weather_forcast(request):
+    context = {
+        'segment': 'live_analytics',
+        'username': 'One',
+        'sensor_group': get_sensor_group_names(),
+    }
+
+    return render(request, "pages/live_analysis_old.html", context)
+
+
 def map(request):
     context = {
         'segment': 'map',
@@ -147,34 +167,35 @@ def weather_data(x=18.0182222, y=-76.7440833):
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
 
-    # Make sure all required weather variables are listed here
-    # The order of variables in hourly or daily is important to assign them correctly below
-    url = "https://api.open-meteo.com/v1/forecast"
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    seven_days_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+
+    url = "https://archive-api.open-meteo.com/v1/archive"
     params = {
         "latitude": x,
         "longitude": y,
-        "hourly": ["temperature_2m", "precipitation", "evapotranspiration", "et0_fao_evapotranspiration",
-                   "wind_speed_10m", "temperature_80m", "soil_temperature_6cm", 'direct_radiation']
+        "start_date": str(seven_days_ago),
+        "end_date": str(today_date),
+        "hourly": ["temperature_2m", "relative_humidity_2m", "precipitation", "et0_fao_evapotranspiration",
+                   "soil_temperature_0_to_7cm", "direct_radiation"]
     }
     responses = openmeteo.weather_api(url, params=params)
 
     # Process first location. Add a for-loop for multiple locations or weather models
-    for response in responses:
-        print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-        print(f"Elevation {response.Elevation()} m asl")
-        print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-        print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+    response = responses[0]
+    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+    print(f"Elevation {response.Elevation()} m asl")
+    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
     hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_precipitation = hourly.Variables(1).ValuesAsNumpy()
-    hourly_evapotranspiration = hourly.Variables(2).ValuesAsNumpy()
+    hourly_relative_humidity_2m = hourly.Variables(1).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
     hourly_et0_fao_evapotranspiration = hourly.Variables(3).ValuesAsNumpy()
-    hourly_wind_speed_10m = hourly.Variables(4).ValuesAsNumpy()
-    hourly_temperature_80m = hourly.Variables(5).ValuesAsNumpy()
-    hourly_soil_temperature_6cm = hourly.Variables(6).ValuesAsNumpy()
-    hourly_direct_radiation = hourly.Variables(7).ValuesAsNumpy()
+    hourly_soil_temperature_0_to_7cm = hourly.Variables(4).ValuesAsNumpy()
+    hourly_direct_radiation = hourly.Variables(5).ValuesAsNumpy()
 
     hourly_data = {"date": pd.date_range(
         start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
@@ -183,43 +204,38 @@ def weather_data(x=18.0182222, y=-76.7440833):
         inclusive="left"
     )}
     hourly_data["temperature_2m"] = hourly_temperature_2m
+    hourly_data["relative_humidity_2m"] = hourly_relative_humidity_2m
     hourly_data["precipitation"] = hourly_precipitation
-    hourly_data["evapotranspiration"] = hourly_evapotranspiration
     hourly_data["et0_fao_evapotranspiration"] = hourly_et0_fao_evapotranspiration
-    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
-    hourly_data["temperature_80m"] = hourly_temperature_80m
-    hourly_data["soil_temperature_6cm"] = hourly_soil_temperature_6cm
+    hourly_data["soil_temperature_0_to_7cm"] = hourly_soil_temperature_0_to_7cm
     hourly_data["direct_radiation"] = hourly_direct_radiation
 
     hourly_dataframe = pd.DataFrame(data=hourly_data)
 
     temperature_2m = hourly_dataframe[['date', 'temperature_2m']].to_json(orient='records', date_format='iso')
     precipitation = hourly_dataframe[['date', 'precipitation']].to_json(orient='records', date_format='iso')
-    evapotranspiration = hourly_dataframe[['date', 'evapotranspiration']].to_json(orient='records', date_format='iso')
     et0_fao_evapotranspiration = hourly_dataframe[['date', 'et0_fao_evapotranspiration']].to_json(orient='records',
                                                                                                   date_format='iso')
-    wind_speed_10m = hourly_dataframe[['date', 'wind_speed_10m']].to_json(orient='records', date_format='iso')
-    soil_temperature_6cm = hourly_dataframe[['date', 'soil_temperature_6cm']].to_json(orient='records',
+    relative_humidity_2m = hourly_dataframe[['date', 'relative_humidity_2m']].to_json(orient='records',
                                                                                       date_format='iso')
-    soil_temperature_6cm = hourly_dataframe[['date', 'soil_temperature_6cm']].to_json(orient='records',
-                                                                                      date_format='iso')
-    direct_radiation = hourly_dataframe[['date', 'direct_radiation']].to_json(orient='records',
-                                                                              date_format='iso')
+    soil_temperature_0_to_7cm = hourly_dataframe[['date', 'soil_temperature_0_to_7cm']].to_json(orient='records',
+                                                                                                date_format='iso')
+    direct_radiation = hourly_dataframe[['date', 'direct_radiation']].to_json(orient='records', date_format='iso')
 
-    print(soil_temperature_6cm)
-    print(wind_speed_10m)
-    print(et0_fao_evapotranspiration)
-    print(evapotranspiration)
-    print(precipitation)
     weather_data_dict = {
         'temperature_2m': temperature_2m,
-        'evapotranspiration': evapotranspiration,
         'et0_fao_evapotranspiration': et0_fao_evapotranspiration,
         'precipitation': precipitation,
-        'wind_speed_10m': wind_speed_10m,
-        'soil_temperature_6cm': soil_temperature_6cm,
-        'direct_radiation':direct_radiation,
+        'soil_temperature_0_to_7cm': soil_temperature_0_to_7cm,
+        'relative_humidity_2m': relative_humidity_2m,
+        'direct_radiation': direct_radiation,
     }
+    print(temperature_2m)
+    print(et0_fao_evapotranspiration)
+    print(precipitation)
+    print(soil_temperature_0_to_7cm)
+    print(relative_humidity_2m)
+    print(direct_radiation)
 
     return weather_data_dict
 
