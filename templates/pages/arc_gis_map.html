@@ -59,40 +59,65 @@
 
             var temp_per;
 
-            fetch('http://127.0.0.1:8000/calculate_weather/')
+            fetch('http://127.0.0.1:8000/historical_weather/')
                 .then(response => response.json())
                 .then(data => {
                     var temperature = JSON.parse(data.temperature_2m);
-                    var precipitation = data.precipitation;
-                    var evapotranspiration = data.evapotranspiration;
-                    var windSpeed = data.wind_speed_10m;
-                    var soilTemperature = data.soil_temperature_6cm
+                    var precipitation = JSON.parse(data.precipitation);
+                    var evapotranspiration = JSON.parse(data.et0_fao_evapotranspiration);
+                    var direct_radiation = JSON.parse(data.direct_radiation);
+                    var relative_humidity = JSON.parse(data.relative_humidity_2m);
+                    var soil_temperature = JSON.parse(data.soil_temperature_0_to_7cm);
 
-                    let temp_date = temperature.map((item => item.date))
-                    let temp_value = temperature.map((item => item.temperature_2m))
-                    let temp_sum = temp_value.reduce((acc,curr)=>acc+curr,0);
-                    let temp_avg =temp_sum / temp_value.length;
-                    temp_per = (temp_avg).toFixed(2)
+                    let temp_date = temperature.map((item => item.date));
+                    let temp_value = temperature.map((item => item.temperature_2m));
+                    let temp_sum = temp_value.reduce((acc, curr) => acc + curr, 0);
+                    let temp_avg = temp_sum / temp_value.length;
+                    temp_per = (temp_avg).toFixed(2);
 
+                    let precipitation_date = precipitation.map((item => item.date));
+                    let precipitation_value = precipitation.map((item => item.precipitation));
+                    let precipitation_sum = precipitation_value.reduce((acc, curr) => acc + curr, 0);
+                    let precipitation_avg = precipitation_sum / precipitation_value.length;
+                    precipitation_per = (precipitation_avg).toFixed(2);
+                    console.log(precipitation_value)
 
-                    console.log(temp_value)
+                    let evapotranspiration_date = evapotranspiration.map((item => item.date));
+                    let evapotranspiration_value = evapotranspiration.map((item => item.et0_fao_evapotranspiration));
+                    let evapotranspiration_sum = evapotranspiration_value.reduce((acc, curr) => acc + curr, 0);
+                    let evapotranspiration_avg = evapotranspiration_sum / evapotranspiration_value.length;
+                    evapotranspiration_per = (evapotranspiration_avg).toFixed(2);
+                    console.log(evapotranspiration_per)
 
-                    precipitation_date = temperature.map((item => item.date))
-                    precipitation_value = temperature.map((item => item.precipitation))
+                    let direct_radiation_date = direct_radiation.map((item => item.date));
+                    let direct_radiation_value = direct_radiation.map((item => item.direct_radiation));
+                    let direct_radiation_sum = direct_radiation_value.reduce((acc, curr) => acc + curr, 0);
+                    let direct_radiation_avg = direct_radiation_sum / direct_radiation_value.length;
+                    direct_radiation_per = (direct_radiation_avg).toFixed(2);
+                    console.log(direct_radiation_per)
 
-                    console.log(temp_value)
-                })
+                    let relative_humidity_date = relative_humidity.map((item => item.date));
+                    let relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m));
+                    let relative_humidity_sum = relative_humidity_value.reduce((acc, curr) => acc + curr, 0);
+                    let relative_humidity_avg = relative_humidity_sum / relative_humidity_value.length;
+                    relative_humidity_per = (relative_humidity_avg).toFixed(2);
+                    console.log(relative_humidity_sum)
 
+                    let soil_temperature_date = soil_temperature.map((item => item.date));
+                    let soil_temperature_value = soil_temperature.map((item => item.soil_temperature_0_to_7cm));
+                    let soil_temperature_sum = soil_temperature_value.reduce((acc, curr) => acc + curr, 0);
+                    let soil_temperature_avg = soil_temperature_sum / soil_temperature_value.length;
+                    soil_temperature_per = (soil_temperature_avg).toFixed(2);
+                    console.log(soil_temperature_per)
 
+                });
 
             fetch('http://127.0.0.1:8000/sensor_location/')
                 .then(response => response.json())
                 .then(location_data => {
-                    console.log(location_data)
                     fetch('http://127.0.0.1:8000/sensor_dataset/')
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data)
                             for (const feature of location_data.features) {
                                 for (const d of data) {
                                     const lat = feature.geometry.coordinates[1];
@@ -101,8 +126,8 @@
 
                                     let avg_sensor_data = 0
                                     let count = 1
-                                    for ( let i= 0 ; i<=data.length-1 ; i++ ){
-                                       let  value = data[i].features[0].properties.sensor_data
+                                    for (let i = 0; i <= data.length - 1; i++) {
+                                        let value = data[i].features[0].properties.sensor_data
                                         avg_sensor_data += value;
                                     }
                                     console.log(avg_sensor_data)
@@ -111,16 +136,22 @@
                                     avg_per = (avg_sensor_data * 10).toFixed(2)
                                     avg_value = (avg_sensor_data).toFixed(5)
 
-
-
-                                    const popupContent = "<b>Sensor Group: " + feature.id + "</b><br><br> Current Moisture Sensor Reading: "
-                                        +avg_per +  "% <br>" +  "Ambient Temperature: "+temp_per +"°C <br>"+ "Soil Temperature: " + "°C <br>" + "Precipitation: "  ;
+                                    const popupContent = "<b>Sensor Group: " + feature.id + "</b>" +
+                                        "<br><br><a class='link-opacity-100' data-toggle='modal' data-target='#exampleModal'>Forecast </a>" +
+                                        "<br><br> Soil Moisture Sensor Reading: " + avg_per + " % <br>" +
+                                        "Ambient Temperature: " + temp_per + " °C <br>" +
+                                        "Soil Temperature: " + soil_temperature_per + " °C <br>" +
+                                        "Evapotranspiration: " + evapotranspiration_per + " mm <br>" +
+                                        "Precipitation : " + precipitation_per + " mm <br>" +
+                                        "Direct Solar Radiation  : " + direct_radiation_per + " W/m² <br>" +
+                                        "Relative Humidity: " + relative_humidity_per + " % <br>"
+                                    ;
                                     var marker = L.marker([lat, lng]).addTo(map);
                                     if (popupContent) {
                                         marker.bindPopup(popupContent);
                                     }
 
-                                    var circle =  L.circle([lat, lng], {radius: 900}).addTo(map)
+                                    var circle = L.circle([lat, lng], {radius: 900}).addTo(map)
 
                                 }
                             }
@@ -135,6 +166,27 @@
         <div class="col-md-12">
             <div class="map-container">
                 <div onload="init()" id="map" class="map parent-fit"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Notice</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    We will contact to at a later date to verify and confirm the placement of the sensors
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-primary">Commit</button>
+                </div>
             </div>
         </div>
     </div>

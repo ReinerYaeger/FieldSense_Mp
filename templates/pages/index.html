@@ -107,7 +107,7 @@
                                 'rgb(101,227,106)',
                                 'rgb(219,199,243)',
                             ],
-                            borderWidth: 1,
+                            borderWidth: 2,
                             hoverOffset: 4
                         }]
                     },
@@ -165,7 +165,7 @@
                             data: avg_readings,
                             backgroundColor: 'rgba(54, 162, 235, 0.5)',
                             borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
+                            borderWidth: 2
                         }]
                     },
                     options: {
@@ -209,7 +209,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            fetch('http://127.0.0.1:8000/calculate_weather/')
+            fetch('http://127.0.0.1:8000/historical_weather/')
                 .then(response => response.json())
                 .then(data => {
                     var temperature = JSON.parse(data.temperature_2m);
@@ -229,9 +229,10 @@
                             labels: temp_date,
                             datasets: [{
                                 label: 'Temperature (°C)',
-                                data: temp_value, soil_data,
+                                data: temp_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
+                                radius: 1,
+                                borderWidth: 2,
                                 fill: false
                             }]
                         },
@@ -267,7 +268,8 @@
                                 label: 'Precipitation ',
                                 data: precipitation_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
+                                radius: 1,
+                                borderWidth: 2,
                                 fill: false
                             }]
                         },
@@ -304,7 +306,8 @@
                                 label: 'Evapotranspiration ',
                                 data: evapotranspiration_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
+                                borderWidth: 2,
+                                radius: 1,
                                 fill: false
                             }]
                         },
@@ -340,7 +343,8 @@
                                 label: 'Direct Radiation ',
                                 data: direct_radiation_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
+                                borderWidth: 2,
+                                radius: 1,
                                 fill: true
                             }]
                         },
@@ -376,7 +380,8 @@
                                 label: 'Soil Temperature (°C)',
                                 data: soil_temp_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
+                                radius: 1,
+                                borderWidth: 2,
                                 fill: false
                             }]
                         },
@@ -411,9 +416,10 @@
                                 label: 'Relative Humidity (%)',
                                 data: relative_humidity_value,
                                 borderColor: 'rgba(255, 99, 132, 1)',
+                                radius: 1,
                                 borderWidth: 2,
                                 fill: false
-                            }]
+                            },]
                         },
                         options: {
                             maintainAspectRatio: false,
@@ -679,14 +685,9 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="row">
-
-            </div>
-
-
-            <!-- [ statistics year chart ] start -->
-            <!-- [ Main Content ] end -->
 
 
 

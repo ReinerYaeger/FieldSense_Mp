@@ -26,9 +26,11 @@
                         backgroundColor: "#3e95cd",
                         tension: 0,
                         fill: true,
+                        radius: 0,
                     }]
                 },
                 options: {
+                    radius: 0,
                     legend: {
                         display: true,
                         position: "bottom",
@@ -43,7 +45,7 @@
                                 min: new Date().setHours(0, 0, 0, 0), // Set min to today's date at 00:00:00
                                 max: new Date().setHours(24, 0, 0, 0), // Set max to today's date at 24:00:00 (12 am next day)
                                 unit: 'hour',
-                                stepSize: 1,
+                                stepSize: 4,
                                 displayFormats: {
                                     hour: 'HH:mm' // Format for displaying hours
                                 }

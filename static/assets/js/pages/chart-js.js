@@ -11,17 +11,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     datasets: [{
                         data: [],  // Array to store average data for A0
                         label: "Average Data",
-                        backgroundColor: "#3e95cd",
+                        backgroundColor: "#699dbe",
+                        radius: 0,
                         tension: 0,
                         fill: true,
                     }]
                 },
                 options: {
+                     radius: 0,
                     legend: {
                         display: true,
                         position: "bottom",
                         labels: {
-                            fontColor: 'rgb(0, 0, 0)'
+                            fontColor: 'rgb(185,23,23)'
                         }
                     },
                     scales: {

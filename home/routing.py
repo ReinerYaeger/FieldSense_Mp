@@ -4,5 +4,5 @@ from . import consumer
 websocket_urlpatterns = [
     path('ws/socket-server/', consumer.DataConsumer.as_asgi()),
     path('ws/map-data-socket/', consumer.MapDataConsumer.as_asgi()),
-    path('ws/weather-data-socket/',consumer.WeatherData.as_asgi()),
+   # path('ws/weather-data-socket/',consumer.WeatherData.as_asgi()),
 ]

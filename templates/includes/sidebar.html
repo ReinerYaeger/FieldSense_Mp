@@ -42,8 +42,8 @@
                     </ul>
                 </li>
 
-            <li class="nav-item {% if 'environmental_statistics' in segment %}active{% endif %}">
-                    <a href="{% url 'environmental_statistics' %}" class="nav-link "><span class="pcoded-micon"><i
+            <li class="nav-item {% if 'weather_forcast' in segment %}active{% endif %}">
+                    <a href="{% url 'weather_forcast' %}" class="nav-link "><span class="pcoded-micon"><i
                             class="feather icon-crosshair "></i></span><span class="pcoded-mtext">Forecast</span></a>
                 </li>
 
@@ -51,11 +51,10 @@
                     <a href="{% url 'live_analytics' %}" class="nav-link "><span class="pcoded-micon"><i
                             class="feather icon-activity "></i></span><span
                             class="pcoded-mtext">Live Data Analysis</span></a>
-
                 </li>
 
-                <li class="nav-item {% if 'environmental_statistics' in segment %}active{% endif %}">
-                    <a href="{% url 'environmental_statistics' %}" class="nav-link "><span class="pcoded-micon"><i
+                <li class="nav-item {% if 'general_information' in segment %}active{% endif %}">
+                    <a href="{% url 'general_information' %}" class="nav-link "><span class="pcoded-micon"><i
                             class="feather icon-info "></i></span><span class="pcoded-mtext">General Information</span></a>
                 </li>
                 <li class="nav-item {% if 'report' in segment %}active{% endif %}">

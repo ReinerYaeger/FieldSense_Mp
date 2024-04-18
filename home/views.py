@@ -32,17 +32,15 @@ def index(request):
     return render(request, "pages/index.html", context)
 
 
-def calculate_weather(request):
-    print("Calculating Qeatrher")
-    weather_data_dict = weather_data()
-    if request.method == 'POST':
-        x = request.POST.get('x')
-        y = request.POST.get('y')
-        weather_data_dict = weather_data(x, y)
+def historical_weather(request):
+    print("Calculating Historical Weather")
+    weather_data_dict = weather_historical_data()
 
-        # precipitation_probability = np.mean(weather_data_dict["daily_data"]["precipitation_probability_max"])
+    return JsonResponse(weather_data_dict)
 
-        # evapotranspiration = np.mean(weather_data_dict["daily_data"]["et0_fao_evapotranspiration"])
+def forecast_weather(request):
+    print("Calculating Weather Forecast")
+    weather_data_dict = generate_forcast()
 
     return JsonResponse(weather_data_dict)
 
@@ -67,7 +65,7 @@ def live_analytics(request):
 
 def general_information(request):
     context = {
-        'segment': 'live_analytics',
+        'segment': 'general_information',
         'username': 'One',
         'sensor_group': get_sensor_group_names(),
     }
@@ -77,12 +75,89 @@ def general_information(request):
 
 def weather_forcast(request):
     context = {
+        'segment': 'weather_forcast',
+        'username': 'One',
+        'sensor_group': get_sensor_group_names(),
+    }
+
+
+    return render(request, "pages/forecast.html", context)
+
+def generate_forcast(x=18.0182222, y=-76.7440833):
+    context = {
         'segment': 'live_analytics',
         'username': 'One',
         'sensor_group': get_sensor_group_names(),
     }
 
-    return render(request, "pages/live_analysis_old.html", context)
+    # Setup the Open-Meteo API client with cache and retry on error
+    cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+    openmeteo = openmeteo_requests.Client(session=retry_session)
+
+    # Make sure all required weather variables are listed here
+    # The order of variables in hourly or daily is important to assign them correctly below
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": x,
+        "longitude": y,
+        "hourly": ["temperature_2m", "precipitation", "evapotranspiration", "et0_fao_evapotranspiration",
+                   "wind_speed_10m", "temperature_80m", "soil_temperature_6cm"]
+    }
+    responses = openmeteo.weather_api(url, params=params)
+
+    # Process first location. Add a for-loop for multiple locations or weather models
+    response = responses[0]
+    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+    print(f"Elevation {response.Elevation()} m asl")
+    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+
+    # Process hourly data. The order of variables needs to be the same as requested.
+    hourly = response.Hourly()
+    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(1).ValuesAsNumpy()
+    hourly_evapotranspiration = hourly.Variables(2).ValuesAsNumpy()
+    hourly_et0_fao_evapotranspiration = hourly.Variables(3).ValuesAsNumpy()
+    hourly_wind_speed_10m = hourly.Variables(4).ValuesAsNumpy()
+    hourly_temperature_80m = hourly.Variables(5).ValuesAsNumpy()
+    hourly_soil_temperature_6cm = hourly.Variables(6).ValuesAsNumpy()
+
+    hourly_data = {"date": pd.date_range(
+        start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+        end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+        freq=pd.Timedelta(seconds=hourly.Interval()),
+        inclusive="left"
+    )}
+    hourly_data["temperature_2m"] = hourly_temperature_2m
+    hourly_data["precipitation"] = hourly_precipitation
+    hourly_data["evapotranspiration"] = hourly_evapotranspiration
+    hourly_data["et0_fao_evapotranspiration"] = hourly_et0_fao_evapotranspiration
+    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
+    hourly_data["temperature_80m"] = hourly_temperature_80m
+    hourly_data["soil_temperature_6cm"] = hourly_soil_temperature_6cm
+
+    hourly_dataframe = pd.DataFrame(data=hourly_data)
+
+    temperature_2m = hourly_dataframe[['date', 'temperature_2m']].to_json(orient='records', date_format='iso')
+    precipitation = hourly_dataframe[['date', 'precipitation']].to_json(orient='records', date_format='iso')
+    evapotranspiration = hourly_dataframe[['date', 'evapotranspiration']].to_json(orient='records', date_format='iso')
+    et0_fao_evapotranspiration = hourly_dataframe[['date', 'et0_fao_evapotranspiration']].to_json(orient='records',
+                                                                                                  date_format='iso')
+    wind_speed_10m = hourly_dataframe[['date', 'wind_speed_10m']].to_json(orient='records', date_format='iso')
+    soil_temperature_6cm = hourly_dataframe[['date', 'soil_temperature_6cm']].to_json(orient='records',
+                                                                                      date_format='iso')
+
+    weather_data_dict = {
+        'temperature_2m': temperature_2m,
+        'evapotranspiration': evapotranspiration,
+        'et0_fao_evapotranspiration': et0_fao_evapotranspiration,
+        'precipitation': precipitation,
+        'wind_speed_10m': wind_speed_10m,
+        'soil_temperature_6cm': soil_temperature_6cm,
+    }
+
+    return weather_data_dict
 
 
 def map(request):
@@ -161,7 +236,7 @@ def sensor_dataset(request):
     return HttpResponse(dataset, content_type='application/json')
 
 
-def weather_data(x=18.0182222, y=-76.7440833):
+def weather_historical_data(x=18.0182222, y=-76.7440833):
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
