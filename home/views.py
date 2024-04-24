@@ -27,7 +27,6 @@ def index(request):
         'segment': 'index',
         'username': username,
         'sensor_group_names': get_sensor_group_names(),
-
     }
     return render(request, "pages/index.html", context)
 
@@ -38,9 +37,10 @@ def historical_weather(request):
 
     return JsonResponse(weather_data_dict)
 
+
 def forecast_weather(request):
     print("Calculating Weather Forecast")
-    weather_data_dict = generate_forcast()
+    weather_data_dict = weather_historical_data()
 
     return JsonResponse(weather_data_dict)
 
@@ -80,16 +80,10 @@ def weather_forcast(request):
         'sensor_group': get_sensor_group_names(),
     }
 
-
     return render(request, "pages/forecast.html", context)
 
-def generate_forcast(x=18.0182222, y=-76.7440833):
-    context = {
-        'segment': 'live_analytics',
-        'username': 'One',
-        'sensor_group': get_sensor_group_names(),
-    }
 
+def generate_forcast(x=18.018254006, y=-76.744447946):
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
@@ -107,11 +101,11 @@ def generate_forcast(x=18.0182222, y=-76.7440833):
     responses = openmeteo.weather_api(url, params=params)
 
     # Process first location. Add a for-loop for multiple locations or weather models
-    response = responses[0]
-    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation {response.Elevation()} m asl")
-    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+    for response in responses:
+        print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+        print(f"Elevation {response.Elevation()} m asl")
+        print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+        print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()

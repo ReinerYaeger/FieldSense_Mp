@@ -105,7 +105,7 @@
                 <span class="r s"></span>
                 <span class="r"></span>
             </div>
-            <div class="card">
+            <div class="card" style="width: 30rem">
                 <form method="post" class="card-body text-center">
                     {% csrf_token %}
 
@@ -116,13 +116,13 @@
                     <br>
                     <h5> Please Select The Location Of The Property</h5>
 
-                    <div class="mb-3">
+                    <div class="mr-6">
                         <div class="map">
                             <div onload="init()" id="map" class="map parent-fit"></div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="row mb-3 p-3" style="height: 6rem">
                         <div class="col-md-6">
                             <label for="lat" class="form-label">Latitude</label>
                             <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"

@@ -34,11 +34,11 @@ if not SECRET_KEY:
 DEBUG = str2bool(os.environ.get('DEBUG'))
 # print(' DEBUG -> ' + str(DEBUG) )
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','https://e2c9-72-27-50-90.ngrok-free.app']
 
 # Add here your deployment HOSTS
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000',
-                        'http://127.0.0.1:5085']
+                        'http://127.0.0.1:5085','  https://e2c9-72-27-50-90.ngrok-free.app']
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 

@@ -6,6 +6,9 @@
     <!-- morris css -->
     <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="{% static 'assets/js/chartjs-plugin-zoom.min.js' %}"></script>
+
     {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
 {% endblock extrastyle %}
 
@@ -14,15 +17,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            fetch('http://127.0.0.1:8000/forecast_weather/')
+            fetch('http://127.0.0.1:8000/generate_forcast/')
                 .then(response => response.json())
                 .then(data => {
                     var temperature = JSON.parse(data.temperature_2m);
                     var precipitation = JSON.parse(data.precipitation);
-                    var evapotranspiration = JSON.parse(data.et0_fao_evapotranspiration);
+                    var evapotranspiration = JSON.parse(data.evapotranspiration);
                     var direct_radiation = JSON.parse(data.direct_radiation);
                     var relative_humidity = JSON.parse(data.relative_humidity_2m);
-                    var soil_temperature = JSON.parse(data.soil_temperature_0_to_7cm);
+                    var soil_temperature = JSON.parse(data.soil_temperature_0cm);
 
                     temp_date = temperature.map((item => item.date))
                     temp_value = temperature.map((item => item.temperature_2m))
@@ -34,7 +37,7 @@
                     console.log(precipitation_value)
 
                     evapotranspiration_date = evapotranspiration.map((item => item.date))
-                    evapotranspiration_value = evapotranspiration.map((item => item.et0_fao_evapotranspiration))
+                    evapotranspiration_value = evapotranspiration.map((item => item.evapotranspiration))
 
                     console.log(evapotranspiration_date)
                     console.log(evapotranspiration_value)
@@ -45,15 +48,42 @@
                     console.log(evapotranspiration_value)
 
                     soil_temp_date = soil_temperature.map((item => item.date))
-                    soil_temp_value = soil_temperature.map((item => item.soil_temperature_0_to_7cm))
+                    soil_temp_value = soil_temperature.map((item => item.soil_temperature_0cm))
 
                     console.log(evapotranspiration_value)
 
                     relative_humidity_date = relative_humidity.map((item => item.date))
                     relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
                     console.log(temp_value)
+                    const zoomOptions = {
+                        limits: {
+                            x: {min: -200, max: 200, minRange: 50},
+                            y: {min: -200, max: 200, minRange: 50}
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'xy',
+                            onZoomComplete({chart}) {
+                                // This update is needed to display up to date zoom level in the title.
+                                // Without this, previous zoom level is displayed.
+                                // The reason is: title uses the same beforeUpdate hook, and is evaluated before zoom.
+                                chart.update('none');
+                            }
+                        }
+                    };
 
-                    var lineChart = new Chart(document.getElementById('forecast_graph'), {
+
+                    var lineChart = new Chart(document.getElementById('complete_history_graph'), {
+
                         type: 'line',
                         data: {
                             labels: relative_humidity_date,
@@ -61,14 +91,14 @@
                                 label: 'Relative Humidity (%)',
                                 data: relative_humidity_value,
                                 borderColor: 'rgb(41,75,209)',
-                                radius: 0,
+                                radius: .6,
                                 borderWidth: 2,
                                 fill: false
                             }, {
                                 label: 'Soil Temperature (°C)',
                                 data: soil_temp_value,
                                 borderColor: 'rgb(67,2,2)',
-                                radius: 0,
+                                radius: .6,
                                 borderWidth: 2,
                                 fill: false
                             }, {% comment %}{
@@ -76,27 +106,27 @@
                                 data: direct_radiation_value,
                                 borderColor: 'rgb(255,191,41)',
                                 borderWidth: 2,
-                                radius: 0,
+                                radius: .6,
                                 fill: true
                             },{% endcomment %}{
-                                label: 'Evapotranspiration ',
+                                label: 'Evapotranspiration mm',
                                 data: evapotranspiration_value,
                                 borderColor: 'rgb(123,179,91)',
                                 borderWidth: 2,
-                                radius: 0,
+                                radius: .6,
                                 fill: false
                             }, {
-                                label: 'Precipitation ',
+                                label: 'Precipitation mm',
                                 data: precipitation_value,
                                 borderColor: 'rgb(24,197,251)',
-                                radius: 0,
+                                radius: .6,
                                 borderWidth: 2,
                                 fill: false
                             }, {
                                 label: 'Temperature (°C)',
                                 data: temp_value,
                                 borderColor: 'rgb(255,7,54)',
-                                radius: 0,
+                                radius: .6,
                                 borderWidth: 2,
                                 fill: false
                             }],
@@ -104,25 +134,16 @@
                         options: {
                             maintainAspectRatio: false,
                             plugins: {
-                                zoom: {
-                                    pan: {
-                                        enabled: true,
-                                        mode: 'xy'
-                                    },
-                                    limits: {
-                                        y: {min: 0, max: 100},
-                                        y2: {min: -5, max: 5}
-                                    },
-                                    zoomOnDoubleClick: true
-                                }
-                            },
-                            legend: {
-                                display: true,
-                                position: "bottom",
-                                labels: {
-                                    fontColor: 'rgb(0, 0, 0)'
-                                }
-                            },
+                                zoom: zoomOptions,
+
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            }
                         }
                     });
 
@@ -197,7 +218,7 @@
         <div class="card-block">
             <h3 class="f-w-300 d-flex align-items-center m-b-0">Forecast</h3>
             <div style="height: 520px;"> <!-- Adjust the height as needed -->
-                <canvas id="forecast_graph"></canvas>
+                <canvas id="complete_history_graph"></canvas>
             </div>
         </div>
     </div>

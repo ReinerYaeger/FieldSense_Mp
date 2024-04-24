@@ -20,7 +20,7 @@ urlpatterns = [
 
   #path('weather_data/', views.weather_historical_date, name='weather_data'),
   path('historical_weather/', views.historical_weather, name='historical_weather'),
-  path('forecast_weather/', views.forecast_weather, name='forecast_weather'),
+  path('generate_forcast/', views.generate_forcast, name='generate_forcast'),
 
 
 
