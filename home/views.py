@@ -1,8 +1,9 @@
-from datetime import timedelta
+import json
+from django.utils import timezone
+import psycopg2
 from django.db.models import Max
-from django.db.models.functions import TruncMonth, ExtractMonth
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 
 from django.core.serializers import serialize
 from datetime import datetime, timedelta
@@ -23,14 +24,28 @@ def index(request):
     if request.user.is_authenticated:
         username = request.user.first_name
 
+    seven_days_ago = timezone.now() - timedelta(days=7)
+
+    week_sensor_data = get_sensor_data_by_time(seven_days_ago)
     context = {
         'segment': 'index',
         'username': username,
         'sensor_group_names': get_sensor_group_names(),
+        'week_sensor_data': week_sensor_data,
     }
+
     return render(request, "pages/index.html", context)
 
 
+def get_sensor_data_by_time(date):
+    data_points = SensorCollectedData.objects.filter(sensor_date_time__gte=date)[:10]
+    data_json = serialize('json', data_points, fields=('sensor_data',))
+    json_data = json.dumps(data_json)
+
+    return json_data
+
+
+# api
 def historical_weather(request):
     print("Calculating Historical Weather")
     weather_data_dict = weather_historical_data()
@@ -39,6 +54,14 @@ def historical_weather(request):
 
 
 def forecast_weather(request):
+    print("Calculating Forcast")
+    weather_forcast_dict = forecast_weather()
+
+    return JsonResponse(weather_forcast_dict)
+
+
+# api
+def calculate_forecast_weather():
     print("Calculating Weather Forecast")
     weather_data_dict = weather_historical_data()
 
@@ -70,7 +93,7 @@ def general_information(request):
         'sensor_group': get_sensor_group_names(),
     }
 
-    return render(request, "pages/live_analysis_old.html", context)
+    return render(request, "pages/general_information.html", context)
 
 
 def weather_forcast(request):
@@ -83,7 +106,9 @@ def weather_forcast(request):
     return render(request, "pages/forecast.html", context)
 
 
+# backend proceessing function
 def generate_forcast(x=18.018254006, y=-76.744447946):
+    # Setup the Open-Meteo API client with cache and retry on error
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
@@ -93,29 +118,29 @@ def generate_forcast(x=18.018254006, y=-76.744447946):
     # The order of variables in hourly or daily is important to assign them correctly below
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
-        "latitude": x,
-        "longitude": y,
-        "hourly": ["temperature_2m", "precipitation", "evapotranspiration", "et0_fao_evapotranspiration",
-                   "wind_speed_10m", "temperature_80m", "soil_temperature_6cm"]
+        "latitude": 18.01825,
+        "longitude": -76.74444,
+        "hourly": ["temperature_2m", "relative_humidity_2m", "precipitation", "evapotranspiration",
+                   "soil_temperature_0cm", "soil_moisture_0_to_1cm", "direct_radiation"]
     }
     responses = openmeteo.weather_api(url, params=params)
 
     # Process first location. Add a for-loop for multiple locations or weather models
-    for response in responses:
-        print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-        print(f"Elevation {response.Elevation()} m asl")
-        print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-        print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+    response = responses[0]
+    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+    print(f"Elevation {response.Elevation()} m asl")
+    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
     hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_precipitation = hourly.Variables(1).ValuesAsNumpy()
-    hourly_evapotranspiration = hourly.Variables(2).ValuesAsNumpy()
-    hourly_et0_fao_evapotranspiration = hourly.Variables(3).ValuesAsNumpy()
-    hourly_wind_speed_10m = hourly.Variables(4).ValuesAsNumpy()
-    hourly_temperature_80m = hourly.Variables(5).ValuesAsNumpy()
-    hourly_soil_temperature_6cm = hourly.Variables(6).ValuesAsNumpy()
+    hourly_relative_humidity_2m = hourly.Variables(1).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
+    hourly_evapotranspiration = hourly.Variables(3).ValuesAsNumpy()
+    hourly_soil_temperature_0cm = hourly.Variables(4).ValuesAsNumpy()
+    hourly_soil_moisture_0_to_1cm = hourly.Variables(5).ValuesAsNumpy()
+    hourly_direct_radiation = hourly.Variables(6).ValuesAsNumpy()
 
     hourly_data = {"date": pd.date_range(
         start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
@@ -124,34 +149,45 @@ def generate_forcast(x=18.018254006, y=-76.744447946):
         inclusive="left"
     )}
     hourly_data["temperature_2m"] = hourly_temperature_2m
+    hourly_data["relative_humidity_2m"] = hourly_relative_humidity_2m
     hourly_data["precipitation"] = hourly_precipitation
     hourly_data["evapotranspiration"] = hourly_evapotranspiration
-    hourly_data["et0_fao_evapotranspiration"] = hourly_et0_fao_evapotranspiration
-    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
-    hourly_data["temperature_80m"] = hourly_temperature_80m
-    hourly_data["soil_temperature_6cm"] = hourly_soil_temperature_6cm
+    hourly_data["soil_temperature_0cm"] = hourly_soil_temperature_0cm
+    hourly_data["soil_moisture_0_to_1cm"] = hourly_soil_moisture_0_to_1cm
+    hourly_data["direct_radiation"] = hourly_direct_radiation
 
     hourly_dataframe = pd.DataFrame(data=hourly_data)
 
     temperature_2m = hourly_dataframe[['date', 'temperature_2m']].to_json(orient='records', date_format='iso')
+    relative_humidity_2m = hourly_dataframe[['date', 'relative_humidity_2m']].to_json(orient='records',
+                                                                                      date_format='iso')
     precipitation = hourly_dataframe[['date', 'precipitation']].to_json(orient='records', date_format='iso')
     evapotranspiration = hourly_dataframe[['date', 'evapotranspiration']].to_json(orient='records', date_format='iso')
-    et0_fao_evapotranspiration = hourly_dataframe[['date', 'et0_fao_evapotranspiration']].to_json(orient='records',
-                                                                                                  date_format='iso')
-    wind_speed_10m = hourly_dataframe[['date', 'wind_speed_10m']].to_json(orient='records', date_format='iso')
-    soil_temperature_6cm = hourly_dataframe[['date', 'soil_temperature_6cm']].to_json(orient='records',
+    soil_temperature_0cm = hourly_dataframe[['date', 'soil_temperature_0cm']].to_json(orient='records',
                                                                                       date_format='iso')
+    soil_moisture_0_to_1cm = hourly_dataframe[['date', 'soil_moisture_0_to_1cm']].to_json(orient='records',
+                                                                                          date_format='iso')
+    direct_radiation = hourly_dataframe[['date', 'direct_radiation']].to_json(orient='records', date_format='iso')
 
     weather_data_dict = {
         'temperature_2m': temperature_2m,
         'evapotranspiration': evapotranspiration,
-        'et0_fao_evapotranspiration': et0_fao_evapotranspiration,
+        'relative_humidity_2m': relative_humidity_2m,
         'precipitation': precipitation,
-        'wind_speed_10m': wind_speed_10m,
-        'soil_temperature_6cm': soil_temperature_6cm,
+        'soil_temperature_0cm': soil_temperature_0cm,
+        'soil_moisture_0_to_1cm': soil_moisture_0_to_1cm,
+        'direct_radiation': direct_radiation,
     }
 
-    return weather_data_dict
+    print(temperature_2m)
+    print(relative_humidity_2m)
+    print(precipitation)
+    print(evapotranspiration)
+    print(soil_temperature_0cm)
+    print(soil_moisture_0_to_1cm)
+    print(direct_radiation)
+
+    return JsonResponse(weather_data_dict, safe=False)
 
 
 def map(request):
@@ -182,12 +218,40 @@ def environmental_statistics(request):
     return render(request, "pages/environmental_statistics.html", context)
 
 
+def connect_to_db():
+    conn = psycopg2.connect(
+        database="gisdb",
+        host="localhost",
+        user="django",
+        password="root",
+        port="5432"
+    )
+    conn.autocommit = True
+    return conn
+
+
+db_cursor = connect_to_db().cursor()
+
+
 def contribute(request):
     context = {
 
     }
 
-    return render(request, "pages/application_sensor_group.html", context)
+    if request.method == 'POST':
+        print("contribute")
+        if 'contribute_submit' in request.POST:
+            username = request.POST.get('user_name')
+            email = request.POST.get('email')
+            phone_number = request.POST.get('phone_number')
+            lat = request.POST.get('lat')
+            long = request.POST.get('long')
+
+            db_cursor.execute(
+                """INSERT INTO public.user_requests(email, username, sensor_group_location, creation_date, phoneNumber)VALUES(%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s);""",
+                (email, username, float(lat), float(long), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), phone_number))
+
+    return render(request, "pages/contribute.html", context)
 
 
 def report(request):
@@ -226,7 +290,6 @@ def sensor_dataset(request):
 
     # Combine all serialized data
     dataset = '[' + ','.join(serialized_data) + ']'
-
     return HttpResponse(dataset, content_type='application/json')
 
 
@@ -368,14 +431,21 @@ def average_reading_past_week(request):
     return JsonResponse({'dates': dates, 'average_readings': average_readings})
 
 
-def database_coms(request):
-    start_time = datetime(2024, 4, 5, 14, 58, 37)
+## admin pages
 
-    end_time = datetime(2024, 4, 5, 14, 58, 40)
+def view_requests(request):
+    customer_request = SensorGroup.objects.all()
+    context = {
+        'customer_request': customer_request,
+    }
 
-    filtered_data = SensorCollectedData.objects.filter(sensor_date_time__gte=start_time, sensor_date_time__lte=end_time)
+    return render(request, "pages/dynamic-tables.html", context)
 
-    for data in filtered_data:
-        print(data)
 
-    return HttpResponse()
+def sgr_panel(request):
+    sensor_group_list = SensorGroup.objects.all()
+    context = {
+        'sensor_group_list': sensor_group_list,
+    }
+
+    return render(request, "pages/sgr_panel.html", context)

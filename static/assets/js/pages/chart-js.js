@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Chart configuration
             const avgChartConfig = {
-                type: 'line',
+                type: 'scatter',
                 data: {
                     labels: [],  // Array to store date-time labels
                     datasets: [{
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         backgroundColor: "#699dbe",
                         radius: 0,
                         tension: 0,
-                        fill: true,
+                        fill: false,
                     }]
                 },
                 options: {

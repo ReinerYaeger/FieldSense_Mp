@@ -5,23 +5,158 @@
 
 {% block extrastyle %}
 
-<style>
+    <style>
 
-.iframe-container {display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;}
-.parent-fit { flex-grow: 1; border: none; margin: 0; padding: 0; height: 100vh; }
+        .iframe-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-</style>
+        .parent-fit {
+            flex-grow: 1;
+            border: none;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+
+    </style>
 
 {% endblock extrastyle %}
 
 {% block content %}
 
-<div class="row">
-  <div class="col-md-12"> 
-    <div class="iframe-container">
-      <iframe class="parent-fit" src="/datatb/product/"></iframe>    
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Leaflet map
+            map = L.map('map').setView([18.109656, -77.297565], 7);
+            var spatialExtent = L.latLngBounds([17.7012, -78.3666], [18.5242, -76.199]);
+
+            map.setMaxBounds(spatialExtent);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 22,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            map.on('click', function (e) {
+                map.off('click', e);
+                lat = e.latlng.lat;
+                long = e.latlng.lng;
+
+                if (marker) { // check
+                    map.removeLayer(marker); // remove
+                }
+                marker = L.marker([lat, long]).addTo(map);
+                document.getElementById("lat-value").value = lat;
+                document.getElementById("long-value").value = long;
+
+            });
+            var geocoder = L.Control.geocoder({
+                defaultMarkGeocode: false
+            })
+                .on('markgeocode', function (e) {
+                    var bbox = e.geocode.bbox;
+                    var poly = L.polygon([
+                        bbox.getSouthEast(),
+                        bbox.getNorthEast(),
+                        bbox.getNorthWest(),
+                        bbox.getSouthWest()
+                    ]).addTo(map);
+                    map.fitBounds(poly.getBounds());
+                })
+                .addTo(map);
+
+            var searchLayer = L.geoJson().addTo(map);
+            L.map('map', {searchControl: {layer: searchLayer}});
+
+            pointToLocation()
+
+        });
+
+        var marker;
+
+        function pointToLocation() {
+
+            if (marker) { // check
+                map.removeLayer(marker); // remove
+            }
+            long = document.getElementById("long-value").value
+            lat = document.getElementById("lat-value").value
+
+            if (long < -78 || long > 76) {
+                document.getElementById("long-value").value = -77.36572265625001
+                document.getElementById("lat-value").value = 18.08946706198645
+            } else if (lat < 17 && lat > 18.59) {
+                document.getElementById("long-value").value = -77.36572265625001
+                document.getElementById("lat-value").value = 18.08946706198645
+            }
+
+            marker = L.marker([lat, long]).addTo(map);
+        }
+
+
+    </script>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Location</th>
+            <th scope="col">Phone Number</th>
+            <th scope="col">Email Address</th>
+            <th scope="col">Creation Date</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            {% for request in request_list %}
+                <td>{{ forloop.counter }}</td>
+                <td>{{ request.username }}</td>
+                <td>{{ request.location }}
+                    <div class="mr-6">
+                        <div class="map">
+                            <div onload="init()" id="map" class="map parent-fit"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ request.phonenumber }}</td>
+                <td>{{ request.email }}</td>
+                <td>{{ request.creation_date }}</td>
+            {% endfor %}
+
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Open a terminal and run the following command
+                    <br>
+
+                    Enter the ipaddress of the node
+                    <br><br>
+                    <pre style="background-color: whitesmoke">&emsp;&emsp;&emsp;ssh -p raspberry@<span
+                            id="raspberry_ipaddress">{here}</span> </pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 {% endblock content %}

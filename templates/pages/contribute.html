@@ -2,10 +2,6 @@
 {% load static %}
 
 {% block extrastyle %}
-    <!-- morris css -->
-    <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
-    {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
-
 
     <style>
         #map {
@@ -31,6 +27,11 @@
 
 
 {% block content %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"/>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
     <script>
 
@@ -57,6 +58,20 @@
                 document.getElementById("long-value").value = long;
 
             });
+            var geocoder = L.Control.geocoder({
+                defaultMarkGeocode: false
+            })
+                .on('markgeocode', function (e) {
+                    var bbox = e.geocode.bbox;
+                    var poly = L.polygon([
+                        bbox.getSouthEast(),
+                        bbox.getNorthEast(),
+                        bbox.getNorthWest(),
+                        bbox.getSouthWest()
+                    ]).addTo(map);
+                    map.fitBounds(poly.getBounds());
+                })
+                .addTo(map);
 
             var searchLayer = L.geoJson().addTo(map);
             L.map('map', {searchControl: {layer: searchLayer}});
@@ -88,15 +103,6 @@
 
 
     </script>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <link rel="stylesheet"
-          href="https://unpkg.com/@geoapify/leaflet-address-search-plugin@^1/dist/L.Control.GeoapifyAddressSearch.min.css"/>
-    <script src="https://unpkg.com/@geoapify/leaflet-address-search-plugin@^1/dist/L.Control.GeoapifyAddressSearch.min.js"></script>
-
-
     <div class="auth-wrapper">
         <div class="auth-content">
             <div class="auth-bg">
@@ -106,7 +112,7 @@
                 <span class="r"></span>
             </div>
             <div class="card" style="width: 30rem">
-                <form method="post" class="card-body text-center">
+                <form method="post"  class="card-body text-center">
                     {% csrf_token %}
 
                     <div class="mb-4">
@@ -125,21 +131,22 @@
                     <div class="row mb-3 p-3" style="height: 6rem">
                         <div class="col-md-6">
                             <label for="lat" class="form-label">Latitude</label>
-                            <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"
+                            <input  name="lat" onchange="pointToLocation()" step=".000001" type="number" class="form-control"
                                    value="18.109656" id="lat-value">
                         </div>
 
                         <div class="col-md-6">
                             <label for="long" class="form-label">Longitude</label>
-                            <input onchange="pointToLocation()" step=".0000001" type="number" class="form-control"
+                            <input onchange="pointToLocation()"  name="long" step=".000001" type="number" class="form-control"
                                    value="-77.297565" id="long-value">
                         </div>
 
                     </div>
-                    <br>
 
-                    <p> We will contact you in the event there is a perceived abnormality in the environment </p>
-                    <br>
+                    <div class="mb-3">
+                        <label for="user_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="user_name" aria-describedby="user_name">
+                    </div>
 
                     <div class="mb-3">
                         <label for="email_address" class="form-label">Email address</label>
@@ -149,7 +156,7 @@
                         <label for="phone_number" class="form-label">Number</label>
                         <input type="text" class="form-control" id="phone_number">
                     </div>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                    <button type="submit" id="contribute_submit" name="contribute_submit" class="btn btn-primary" data-toggle="modal" data-target="#submitModal">
                         Submit
                     </button>
                 </form>
@@ -157,12 +164,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="submitModal" tabindex="-1" role="dialog" aria-labelledby="submitModalLabel"
          aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Notice</h5>
+                    <h5 class="modal-title" id="submitModalLabel">Notice</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -171,8 +178,7 @@
                     We will contact to at a later date to verify and confirm the placement of the sensors
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" data-dismiss="modal" class="btn btn-primary">Commit </button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

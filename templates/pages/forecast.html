@@ -6,7 +6,6 @@
     <!-- morris css -->
     <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="{% static 'assets/js/chartjs-plugin-zoom.min.js' %}"></script>
 
     {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
@@ -26,6 +25,11 @@
                     var direct_radiation = JSON.parse(data.direct_radiation);
                     var relative_humidity = JSON.parse(data.relative_humidity_2m);
                     var soil_temperature = JSON.parse(data.soil_temperature_0cm);
+                    var soil_moisture = JSON.parse(data.soil_moisture_0_to_1cm)
+
+                    soil_moisture_date = soil_moisture.map((item => item.date))
+                    soil_moisture_value = soil_moisture.map((item => item.soil_moisture_0_to_1cm))
+                    console.log(soil_moisture_value)
 
                     temp_date = temperature.map((item => item.date))
                     temp_value = temperature.map((item => item.temperature_2m))
@@ -101,14 +105,21 @@
                                 radius: .6,
                                 borderWidth: 2,
                                 fill: false
-                            }, {% comment %}{
-                                label: 'Direct Radiation ',
-                                data: direct_radiation_value,
+                            }, {
+                                label: 'Soil Moisture (%)',
+                                data: soil_moisture_value,
                                 borderColor: 'rgb(255,191,41)',
                                 borderWidth: 2,
                                 radius: .6,
-                                fill: true
-                            },{% endcomment %}{
+                                fill: false
+                            }, {
+                                label: 'Direct Radiation (%)',
+                                data: direct_radiation_value,
+                                borderColor: 'rgb(255,30,0)',
+                                borderWidth: 2,
+                                radius: .6,
+                                fill: false
+                            },{
                                 label: 'Evapotranspiration mm',
                                 data: evapotranspiration_value,
                                 borderColor: 'rgb(123,179,91)',
@@ -156,18 +167,17 @@
 
     <br>
     <div class="card-header">
-        <h5>Generate Forcast </h5>
+        <h5>7 Day Forcast </h5>
         <div class="container">
             <div class="row">
                 <div class="col justify-content-start">
                     <form id="sensorForm" method="post">
                         {% csrf_token %}
                         <div class="row ">
-                            <div class="col">
+                            <div class="col-md-3">
                                 <label for="sensor_group_select">Sensor Group Location</label>
                                 <select required class="form-control" id="sensor_group_select"
                                         name="sensor_group_select">
-                                    <option value=""></option>
                                     {% for sg in sensor_group %}
                                         <option value="{{ sg }}"
                                                 data-x="{{ sg.sensor_group_location.y }}"
@@ -177,25 +187,6 @@
 
                                     {% endfor %}
                                 </select>
-                            </div>
-
-
-                            <div class="col">
-                                <label for="s-date" class="form-label">Start Date</label>
-                                <input onchange="" step=".0000001" type="date" class="form-control"
-                                       value="18.109656" id="lat-value">
-                            </div>
-
-                            <div class="col">
-                                <label for="e-date" class="form-label">End Date</label>
-                                <input onchange="" step=".0000001" type="date" class="form-control"
-                                       value="-77.297565" id="long-value">
-                            </div>
-                            <div class="col">
-                                <label for="e-date" class="form-label">Lets Generate Your Data </label>
-                                <button type="button" class="btn btn-primary" data-toggle="modal">
-                                    Generate
-                                </button>
                             </div>
                         </div>
 

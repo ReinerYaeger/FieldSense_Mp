@@ -68,6 +68,7 @@ def server():
                 rec_data = pickle.loads(data)
                 print(f"Data by {rec_data}")
                 upload_data(rec_data)
+                sleep(10)
 
     except socket.error as e:
         logging.error(f"{e}")

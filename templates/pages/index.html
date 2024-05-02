@@ -6,7 +6,7 @@
     <!-- morris css -->
     <link rel="stylesheet" href="{% static 'assets/plugins/chart-morris/css/morris.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
+    <script src="{% static 'assets/js/chartjs-plugin-zoom.min.js' %}"></script>
 {% endblock extrastyle %}
 
 {% block content %}
@@ -60,22 +60,25 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error fetching data:', error);
+
                 });
 
 
         });
 
+        var soil_moisture_array;
         fetch('http://127.0.0.1:8000/sensor_dataset/')
             .then(response => response.json())
             .then(data => {
                 let avg_sensor_data = 0
+
 
                 for (const d of data) {
 
                     let count = 1
                     for (let i = 0; i <= data.length - 1; i++) {
                         let value = data[i].features[0].properties.sensor_data
+                        soil_moisture_array = value;
                         avg_sensor_data += value;
                     }
                     avg_sensor_data = avg_sensor_data / count
@@ -221,7 +224,7 @@
 
                     temp_date = temperature.map((item => item.date))
                     temp_value = temperature.map((item => item.temperature_2m))
-                    console.log(temp_value)
+
 
                     var temperatureChart = new Chart(document.getElementById('temp_line_graph'), {
                         type: 'line',
@@ -258,7 +261,6 @@
                     precipitation_date = precipitation.map((item => item.date))
                     precipitation_value = precipitation.map((item => item.precipitation))
 
-                    console.log(precipitation_value)
 
                     var precipitationChart = new Chart(document.getElementById('precipitation_line_graph'), {
                         type: 'line',
@@ -295,8 +297,6 @@
                     evapotranspiration_date = evapotranspiration.map((item => item.date))
                     evapotranspiration_value = evapotranspiration.map((item => item.et0_fao_evapotranspiration))
 
-                    console.log(evapotranspiration_date)
-                    console.log(evapotranspiration_value)
 
                     var evapotranspirationChart = new Chart(document.getElementById('evapotranspiration_line_graph'), {
                         type: 'line',
@@ -333,7 +333,6 @@
                     direct_radiation_date = direct_radiation.map((item => item.date))
                     direct_radiation_value = direct_radiation.map((item => item.direct_radiation))
 
-                    console.log(evapotranspiration_value)
 
                     var directRadiation = new Chart(document.getElementById('direct_radiation_line_graph'), {
                         type: 'line',
@@ -370,7 +369,6 @@
                     soil_temp_date = soil_temperature.map((item => item.date))
                     soil_temp_value = soil_temperature.map((item => item.soil_temperature_0_to_7cm))
 
-                    console.log(evapotranspiration_value)
 
                     var soilTempChart = new Chart(document.getElementById('soil_temp_line_graph'), {
                         type: 'line',
@@ -406,7 +404,7 @@
 
                     relative_humidity_date = relative_humidity.map((item => item.date))
                     relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
-                    console.log(temp_value)
+
 
                     var relativeHumidityChart = new Chart(document.getElementById('relative_humidity_line_graph'), {
                         type: 'line',
@@ -442,6 +440,7 @@
 
                 })
 
+
             fetch('http://127.0.0.1:8000/historical_weather/')
                 .then(response => response.json())
                 .then(data => {
@@ -454,32 +453,24 @@
 
                     temp_date = temperature.map((item => item.date))
                     temp_value = temperature.map((item => item.temperature_2m))
-                    console.log(temp_value)
+
 
                     precipitation_date = precipitation.map((item => item.date))
                     precipitation_value = precipitation.map((item => item.precipitation))
 
-                    console.log(precipitation_value)
-
                     evapotranspiration_date = evapotranspiration.map((item => item.date))
                     evapotranspiration_value = evapotranspiration.map((item => item.et0_fao_evapotranspiration))
-
-                    console.log(evapotranspiration_date)
-                    console.log(evapotranspiration_value)
 
                     direct_radiation_date = direct_radiation.map((item => item.date))
                     direct_radiation_value = direct_radiation.map((item => item.direct_radiation))
 
-                    console.log(evapotranspiration_value)
-
                     soil_temp_date = soil_temperature.map((item => item.date))
                     soil_temp_value = soil_temperature.map((item => item.soil_temperature_0_to_7cm))
 
-                    console.log(evapotranspiration_value)
-
                     relative_humidity_date = relative_humidity.map((item => item.date))
                     relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
-                    console.log(temp_value)
+
+
                     const zoomOptions = {
                         limits: {
                             x: {min: -200, max: 200, minRange: 50},
@@ -511,11 +502,18 @@
 
                         type: 'line',
                         data: {
-                            labels: relative_humidity_date,
+                            labels: precipitation_date.map(item => item.split('.00')[0]),
                             datasets: [{
                                 label: 'Relative Humidity (%)',
                                 data: relative_humidity_value,
                                 borderColor: 'rgb(41,75,209)',
+                                radius: .6,
+                                borderWidth: 2,
+                                fill: false
+                            }, {
+                                label: 'Soil Moisture (VWC)',
+                                data: 0,
+                                borderColor: 'rgb(128,16,188)',
                                 radius: .6,
                                 borderWidth: 2,
                                 fill: false
@@ -526,14 +524,14 @@
                                 radius: .6,
                                 borderWidth: 2,
                                 fill: false
-                            }, {% comment %}{
-                                label: 'Direct Radiation ',
+                            }, {
+                                label: 'Direct Radiation (w/m²)',
                                 data: direct_radiation_value,
                                 borderColor: 'rgb(255,191,41)',
                                 borderWidth: 2,
                                 radius: .6,
-                                fill: true
-                            },{% endcomment %}{
+                                fill: false
+                            }, {
                                 label: 'Evapotranspiration mm',
                                 data: evapotranspiration_value,
                                 borderColor: 'rgb(123,179,91)',
@@ -560,7 +558,6 @@
                             maintainAspectRatio: false,
                             plugins: {
                                 zoom: zoomOptions,
-
                                 legend: {
                                     display: true,
                                     position: "bottom",
@@ -658,7 +655,7 @@
                         <label for="sensor_group_select">Sensor Group Location</label>
                         <select required class="form-control" id="sensor_group_select"
                                 name="sensor_group_select">
-                            <option value=""></option>
+
                             {% for sensor_group in sensor_group_names %}
                                 <option value="{{ sensor_group }}"
                                         data-x="{{ sensor_group.sensor_group_location.y }}"
@@ -834,6 +831,11 @@
             </div>
         </div>
     </div>
+
+
+    <script>
+
+    </script>
 
 
 
