@@ -239,10 +239,9 @@ def contribute(request):
     }
 
     if request.method == 'POST':
-        print("contribute")
         if 'contribute_submit' in request.POST:
             username = request.POST.get('user_name')
-            email = request.POST.get('email')
+            email = request.POST.get('email_address')
             phone_number = request.POST.get('phone_number')
             lat = request.POST.get('lat')
             long = request.POST.get('long')
@@ -253,14 +252,113 @@ def contribute(request):
 
     return render(request, "pages/contribute.html", context)
 
+def live_analytics_frame(request):
 
+    return render(request,"pages/live_analysis_frame.html")
 def report(request):
     context = {
         'segment': 'report',
         'username': 'One',
         'sensor_group_names': get_sensor_group_names(),
     }
+
+    if request.method == 'POST':
+        if 'report_submit' in request.POST:
+            past_days = request.POST.get('sensor_group_select')
+            forecast_days = request.POST.get('forecast_select')
+
+            selected_variables = request.POST.getlist('variable_select')
+            print(selected_variables)
+
+            report = generate_report(past_days, forecast_days, selected_variables)
+
+            return render(request, "pages/report_generated.html", context)
+
     return render(request, "pages/report.html", context)
+
+
+def generate_report(past_days, forecast_days, selected_variables):
+    print("Calculating Report Data")
+    weather_data_dict = generate_report_data(past_days, forecast_days, selected_variables)
+
+    return JsonResponse(weather_data_dict)
+
+def generate_report_data(past_days, forecast_days, selected_variables):
+    cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+    openmeteo = openmeteo_requests.Client(session=retry_session)
+
+    # Make sure all required weather variables are listed here
+    # The order of variables in hourly or daily is important to assign them correctly below
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": 18.01825,
+        "longitude": -76.74444,
+        "hourly": selected_variables,
+        "past_days": past_days,
+        "forecast_days": forecast_days
+    }
+    responses = openmeteo.weather_api(url, params=params)
+
+    # Process first location. Add a for-loop for multiple locations or weather models
+    response = responses[0]
+    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+    print(f"Elevation {response.Elevation()} m asl")
+    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+
+    # Process hourly data. The order of variables needs to be the same as requested.
+    hourly = response.Hourly()
+    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    hourly_relative_humidity_2m = hourly.Variables(1).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
+    hourly_evapotranspiration = hourly.Variables(3).ValuesAsNumpy()
+    hourly_soil_temperature_0cm = hourly.Variables(4).ValuesAsNumpy()
+    hourly_soil_moisture_0_to_1cm = hourly.Variables(5).ValuesAsNumpy()
+    hourly_direct_radiation = hourly.Variables(6).ValuesAsNumpy()
+
+    hourly_data = {"date": pd.date_range(
+        start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+        end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+        freq=pd.Timedelta(seconds=hourly.Interval()),
+        inclusive="left"
+    )}
+    hourly_data["temperature_2m"] = hourly_temperature_2m
+    hourly_data["relative_humidity_2m"] = hourly_relative_humidity_2m
+    hourly_data["precipitation"] = hourly_precipitation
+    hourly_data["evapotranspiration"] = hourly_evapotranspiration
+    hourly_data["soil_temperature_0cm"] = hourly_soil_temperature_0cm
+    hourly_data["soil_moisture_0_to_1cm"] = hourly_soil_moisture_0_to_1cm
+    hourly_data["direct_radiation"] = hourly_direct_radiation
+
+    hourly_dataframe = pd.DataFrame(data=hourly_data)
+
+    temperature_2m = hourly_dataframe[['date', 'temperature_2m']].to_json(orient='records', date_format='iso')
+    precipitation = hourly_dataframe[['date', 'precipitation']].to_json(orient='records', date_format='iso')
+    evapotranspiration = hourly_dataframe[['date', 'evapotranspiration']].to_json(orient='records',
+                                                                                                  date_format='iso')
+    relative_humidity_2m = hourly_dataframe[['date', 'relative_humidity_2m']].to_json(orient='records',
+                                                                                      date_format='iso')
+    soil_temperature_0cm = hourly_dataframe[['date', 'soil_temperature_0cm']].to_json(orient='records',
+                                                                                                date_format='iso')
+    direct_radiation = hourly_dataframe[['date', 'direct_radiation']].to_json(orient='records', date_format='iso')
+
+    weather_data_dict = {
+        'temperature_2m': temperature_2m,
+        'evapotranspiration': evapotranspiration,
+        'precipitation': precipitation,
+        'soil_temperature_0cm': soil_temperature_0cm,
+        'relative_humidity_2m': relative_humidity_2m,
+        'direct_radiation': direct_radiation,
+    }
+    print(temperature_2m)
+    print(evapotranspiration)
+    print(precipitation)
+    print(soil_temperature_0cm)
+    print(relative_humidity_2m)
+    print(direct_radiation)
+
+    return weather_data_dict
 
 
 def sensor_location(request):

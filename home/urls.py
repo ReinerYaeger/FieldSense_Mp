@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('tables/', views.tables, name='tables'),
     path('live_analytics/', views.live_analytics, name='live_analytics'),
+    path('live_analytics_frame/', views.live_analytics_frame, name='live_analytics_frame'),
     path('map/', views.map, name='map'),
     path('wra_map/', views.wra_map, name='wra_map'),
     path('report/', views.report, name='report'),

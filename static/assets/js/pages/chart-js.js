@@ -5,25 +5,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Chart configuration
             const avgChartConfig = {
-                type: 'scatter',
+                type: 'line',
                 data: {
                     labels: [],  // Array to store date-time labels
                     datasets: [{
                         data: [],  // Array to store average data for A0
                         label: "Average Data",
-                        backgroundColor: "#699dbe",
-                        radius: 0,
+                        backgroundColor: "#3e95cd",
                         tension: 0,
-                        fill: false,
+                        fill: true,
                     }]
                 },
                 options: {
-                     radius: 0,
                     legend: {
                         display: true,
                         position: "bottom",
                         labels: {
-                            fontColor: 'rgb(185,23,23)'
+                            fontColor: 'rgb(0, 0, 0)'
                         }
                     },
                     scales: {

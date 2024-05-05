@@ -1,11 +1,3 @@
-
-{% load static %}
-
-{% block extrastyle %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    {#    <script src="{% static 'assets/plugins/chartjs/chart-js.js' %}"></script>#}
-{% endblock extrastyle %}
-
 {% block content %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -13,7 +5,6 @@
             const url = `ws://${window.location.host}/ws/socket-server/`;
             const dataSocket = new WebSocket(url);
 
-            // Chart configuration
             const avgChartConfig = {
                 type: 'line',
                 data: {
@@ -21,13 +12,14 @@
                     datasets: [{
                         data: [],  // Array to store average data for A0
                         label: "Average Data",
-                        backgroundColor: "#3e95cd",
-                        radius: 1,
+                        backgroundColor: "#7dabd0",
                         tension: 0,
                         fill: false,
+                        radius: 0,
                     }]
                 },
                 options: {
+                    radius: 0,
                     legend: {
                         display: true,
                         position: "bottom",
@@ -36,6 +28,23 @@
                         }
                     },
                     scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                min: new Date().setHours(0, 0, 0, 0), // Set min to today's date at 00:00:00
+                                max: new Date().setHours(24, 0, 0, 0), // Set max to today's date at 24:00:00 (12 am next day)
+                                unit: 'hour',
+                                stepSize: 4,
+                                displayFormats: {
+                                    hour: 'HH:mm' // Format for displaying hours
+                                }
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 24 // Maximum number of ticks to display
+                            }
+                        },
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true
@@ -45,24 +54,22 @@
                 }
             };
 
-            // Initialize the chart
             const ctx = document.getElementById('acquisitions').getContext('2d');
             const avgChart = new Chart(ctx, avgChartConfig);
 
-            // WebSocket event listener
+
             dataSocket.addEventListener('message', function (e) {
                 const graphData = JSON.parse(e.data);
                 console.log(graphData);
 
-                // Update labels and data arrays
+
                 avgChart.data.labels.push(graphData.label);
                 avgChart.data.datasets[0].data.push(graphData.avg_sensor_data);
 
 
-                // Maintain a maximum number of data points
                 const maxDataPoints = 100;
                 if (avgChart.data.labels.length > maxDataPoints) {
-                    avgChart.data.labels.shift();
+                    //avgChart.data.labels.shift();
                     avgChart.data.datasets[0].data.shift();
                     avgChart.data.datasets[1].data.shift();
                     avgChart.data.datasets[2].data.shift();
@@ -71,6 +78,7 @@
                 avgChart.update();
             });
         });
+
     </script>
 
     <!-- [ Main Content ] start -->
@@ -82,7 +90,7 @@
                     <div class="card-header">
                         <h5> {{ groups.sensor_group_name }} Sensor Groups</h5>
                     </div>
-                    <div class="card-block">
+                    <div  class="card-block">
                         <div class="container">
                             <canvas width="900" height="300" aria-label="Chart" role="img" id="acquisitions"></canvas>
                         </div>

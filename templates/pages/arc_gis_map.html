@@ -137,6 +137,7 @@
                                     avg_value = (avg_sensor_data).toFixed(5)
 
                                     const popupContent = "<b>Sensor Group: " + feature.id + "</b>" +
+                                        "<br><br><span class='btn btn-primary' data-toggle='modal' data-target='#submitModal'>Live Sensor Reading  </span>" +
                                         "<br><br>Average Reading" +
                                         "<br><br> Soil Moisture Sensor Reading: " + avg_per + " % <br>" +
                                         "Ambient Temperature: " + temp_per + " °C <br>" +
@@ -186,6 +187,20 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="button" data-dismiss="modal" class="btn btn-primary">Commit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="submitModal" tabindex="-1" role="dialog" aria-labelledby="submitModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <iframe class="embed-responsive-item" src="{% url 'live_analytics' %}"></iframe>
+                    </div>
                 </div>
             </div>
         </div>

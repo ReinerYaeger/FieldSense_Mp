@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', filename
 logger = logging.getLogger(__name__)
 
 
-def get_serial_data(sleep_sec=1800):
+def get_serial_data(sleep_sec=3):
     try:
         ser = serial.Serial('COM7', 9600, timeout=1)
         ser.flushInput()
@@ -76,7 +76,7 @@ def get_serial_data(sleep_sec=1800):
         fallback()
 
 
-def fallback(sleep_sec=1800):
+def fallback(sleep_sec=5):
 
     analog_dict = {
         'A0': {'soil_moisture_data': [], 'timestamp': []},

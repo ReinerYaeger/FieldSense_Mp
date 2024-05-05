@@ -61,6 +61,18 @@
             pointToLocation()
 
         });
+        var checkboxes = document.getElementsByName("variable_select");
+
+        // Loop through each checkbox
+        checkboxes.forEach(function (checkbox) {
+            // Add an event listener for when the checkbox is clicked
+            checkbox.addEventListener('click', function () {
+                // If the checkbox is checked, disable it
+                if (checkbox.checked) {
+                    checkbox.disabled = true;
+                }
+            });
+        });
 
     </script>
 
@@ -99,73 +111,36 @@
                         <i class="feather icon-file-text auth-icon"></i>
                     </div>
                     <h3 class="mb-6">Generate Report</h3>
-
-
                     <div id="island_wide_form">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="s-date" class="form-label">Start Date</label>
-                                <input type="date" class="form-control"
-                                       id="start-date">
-                            </div>
 
-                            <div class="col-md-6">
-                                <label for="e-date" class="form-label">End Date</label>
-                                <input type="date" class="form-control"
-                                       id="end-date">
-                            </div>
-                        </div>
                         <div class="row">
                             <div class="col">
-                                <b><h5>Select Variables</h5></b>
+                                <label for="sensor_group_select">Past Days</label>
+                                <select required class="form-control" id="sensor_group_select"
+                                        name="past_days">
+                                    <option value="Utech">University of Technology</option>
+                                </select>
+                            </div>
 
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
-                                    <label class="form-check-label" for="flexCheckDefault">Soil Moisture 1-10cm</label>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
-                                    <label class="form-check-label" for="flexCheckDefault">Soil Temperature 0cm</label>
-                                </div>
-
-                                <!-- Checked checkbox -->
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
-                                           checked/>
-                                    <label class="form-check-label" for="flexCheckChecked">Temperature 80m</label>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
-                                           checked/>
-                                    <label class="form-check-label" for="flexCheckChecked">Evapotranspiration</label>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
-                                           checked/>
-                                    <label class="form-check-label" for="flexCheckChecked">Solar Radiation</label>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
-                                           checked/>
-                                    <label class="form-check-label" for="flexCheckChecked">Precipitation</label>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked"
-                                           checked/>
-                                    <label class="form-check-label" for="flexCheckChecked">Relative Humidity</label>
-                                </div>
+                            <div class="col">
+                                <label for="sensor_group_select">Past Days</label>
+                                <select required class="form-control" id="sensor_group_select"
+                                        name="past_days">
+                                    <option value="1">1 Day</option>
+                                    <option value="3">3 Days</option>
+                                    <option value="4">4 Days</option>
+                                    <option value="5">5 Days</option>
+                                    <option value="7">1 Week</option>
+                                    <option value="14">2 Week</option>
+                                    <option value="31">1 Month</option>
+                                    <option value="61">2 Month</option>
+                                    <option value="92">3 Month</option>
+                                </select>
                             </div>
                             <div class="col">
-                                <b><h5>Parameters</h5></b>
                                 <label for="sensor_group_select">Forcast</label>
                                 <select required class="form-control" id="sensor_group_select"
                                         name="sensor_group_select">
-                                    <option value="0"></option>
                                     <option value="1">1 Day</option>
                                     <option value="3">3 Days</option>
                                     <option value="7">7 Days</option>
@@ -174,8 +149,60 @@
                                 </select>
                             </div>
                         </div>
+                        <br><br>
+                        <div class="col">
+                            <b><h5>Select Variables</h5></b>
+
+                            <div class="form-check">
+                                <input checked name="variable_select" class="form-check-input" type="checkbox"
+                                       value="soil_moisture_0_to_1cm" id="flexCheckDefault"/>
+                                <label class="form-check-label" for="flexCheckDefault">Soil Moisture 1-10cm</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input checked name="variable_select" class="form-check-input" type="checkbox"
+                                       value="soil_temperature_0cm" id="flexCheckDefault"/>
+                                <label class="form-check-label" for="flexCheckDefault">Soil Temperature 0cm</label>
+                            </div>
+
+                            <!-- Checked checkbox -->
+                            <div class="form-check">
+                                <input name="variable_select" class="form-check-input" type="checkbox"
+                                       value="temperature_2m" id="flexCheckChecked"
+                                       checked/>
+                                <label class="form-check-label" for="flexCheckChecked">Temperature 80m</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input name="variable_select" class="form-check-input" type="checkbox"
+                                       value="evapotranspiration" id="flexCheckChecked"
+                                       checked/>
+                                <label class="form-check-label" for="flexCheckChecked">Evapotranspiration</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input name="variable_select" class="form-check-input" type="checkbox"
+                                       value="direct_radiation" id="flexCheckChecked"
+                                       checked/>
+                                <label class="form-check-label" for="flexCheckChecked">Solar Radiation</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input name="variable_select" class="form-check-input" type="checkbox"
+                                       value="precipitation" id="flexCheckChecked"
+                                       checked/>
+                                <label class="form-check-label" for="flexCheckChecked">Precipitation</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input value="relative_humidity_2m" name="variable_select" class="form-check-input"
+                                       type="checkbox" id="flexCheckChecked"
+                                       checked/>
+                                <label class="form-check-label" for="flexCheckChecked">Relative Humidity</label>
+                            </div>
+                        </div>
                         <br>
-                        <button type="submit" data-toggle="modal" data-target="#exampleModal"
+                        <button name="report_submit" type="submit"
                                 class="btn btn-primary">
                             Submit
                         </button>
@@ -184,26 +211,7 @@
             </div>
 
 
-            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            ...
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
 
 

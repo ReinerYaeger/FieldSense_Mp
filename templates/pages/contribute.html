@@ -91,11 +91,11 @@
             lat = document.getElementById("lat-value").value
 
             if (long < -78 || long > 76) {
-                document.getElementById("long-value").value = -77.36572265625001
-                document.getElementById("lat-value").value = 18.08946706198645
+                document.getElementById("long-value").value = -77.3658
+                document.getElementById("lat-value").value = 18.0894
             } else if (lat < 17 && lat > 18.59) {
-                document.getElementById("long-value").value = -77.36572265625001
-                document.getElementById("lat-value").value = 18.08946706198645
+                document.getElementById("long-value").value = -77.3657
+                document.getElementById("lat-value").value = 18.0894
             }
 
             marker = L.marker([lat, long]).addTo(map);
@@ -131,14 +131,14 @@
                     <div class="row mb-3 p-3" style="height: 6rem">
                         <div class="col-md-6">
                             <label for="lat" class="form-label">Latitude</label>
-                            <input  name="lat" onchange="pointToLocation()" step=".000001" type="number" class="form-control"
-                                   value="18.109656" id="lat-value">
+                            <input  name="lat" onchange="pointToLocation()" step=".00001" type="number" class="form-control"
+                                  id="lat-value">
                         </div>
 
                         <div class="col-md-6">
                             <label for="long" class="form-label">Longitude</label>
-                            <input onchange="pointToLocation()"  name="long" step=".000001" type="number" class="form-control"
-                                   value="-77.297565" id="long-value">
+                            <input onchange="pointToLocation()"  name="long" step=".00001" type="number" class="form-control"
+                                    id="long-value">
                         </div>
 
                     </div>
