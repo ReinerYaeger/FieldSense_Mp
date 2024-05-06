@@ -239,22 +239,26 @@ def contribute(request):
     }
 
     if request.method == 'POST':
-        if 'contribute_submit' in request.POST:
-            username = request.POST.get('user_name')
-            email = request.POST.get('email_address')
-            phone_number = request.POST.get('phone_number')
-            lat = request.POST.get('lat')
-            long = request.POST.get('long')
+        print("Note")
 
-            db_cursor.execute(
-                """INSERT INTO public.user_requests(email, username, sensor_group_location, creation_date, phoneNumber)VALUES(%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s);""",
-                (email, username, float(lat), float(long), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), phone_number))
+        print("Note")
+        username = request.POST.get('user_name')
+        email = request.POST.get('email_address')
+        phone_number = request.POST.get('phone_number')
+        lat = request.POST.get('lat')
+        long = request.POST.get('long')
+
+        db_cursor.execute(
+            """INSERT INTO public.user_requests(email, username, sensor_group_location, creation_date, phoneNumber)VALUES(%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s);""",
+            (email, username, float(lat), float(long), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), phone_number))
 
     return render(request, "pages/contribute.html", context)
 
-def live_analytics_frame(request):
 
-    return render(request,"pages/live_analysis_frame.html")
+def live_analytics_frame(request):
+    return render(request, "pages/live_analysis_frame.html")
+
+
 def report(request):
     context = {
         'segment': 'report',
@@ -272,6 +276,8 @@ def report(request):
 
             report = generate_report(past_days, forecast_days, selected_variables)
 
+            context.update({'report': report})
+
             return render(request, "pages/report_generated.html", context)
 
     return render(request, "pages/report.html", context)
@@ -282,6 +288,7 @@ def generate_report(past_days, forecast_days, selected_variables):
     weather_data_dict = generate_report_data(past_days, forecast_days, selected_variables)
 
     return JsonResponse(weather_data_dict)
+
 
 def generate_report_data(past_days, forecast_days, selected_variables):
     cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
@@ -336,11 +343,11 @@ def generate_report_data(past_days, forecast_days, selected_variables):
     temperature_2m = hourly_dataframe[['date', 'temperature_2m']].to_json(orient='records', date_format='iso')
     precipitation = hourly_dataframe[['date', 'precipitation']].to_json(orient='records', date_format='iso')
     evapotranspiration = hourly_dataframe[['date', 'evapotranspiration']].to_json(orient='records',
-                                                                                                  date_format='iso')
+                                                                                  date_format='iso')
     relative_humidity_2m = hourly_dataframe[['date', 'relative_humidity_2m']].to_json(orient='records',
                                                                                       date_format='iso')
     soil_temperature_0cm = hourly_dataframe[['date', 'soil_temperature_0cm']].to_json(orient='records',
-                                                                                                date_format='iso')
+                                                                                      date_format='iso')
     direct_radiation = hourly_dataframe[['date', 'direct_radiation']].to_json(orient='records', date_format='iso')
 
     weather_data_dict = {
@@ -532,9 +539,14 @@ def average_reading_past_week(request):
 ## admin pages
 
 def view_requests(request):
-    customer_request = SensorGroup.objects.all()
+    db_cursor = connect_to_db().cursor()
+    db_cursor.execute(
+        "SELECT email, ST_AsText(sensor_group_location), creation_date, username, phonenumber FROM user_requests")
+    customer_requests = db_cursor.fetchall()
+
     context = {
-        'customer_request': customer_request,
+        'request_list': customer_requests,
+
     }
 
     return render(request, "pages/dynamic-tables.html", context)
