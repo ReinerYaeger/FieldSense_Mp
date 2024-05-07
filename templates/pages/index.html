@@ -12,6 +12,34 @@
 {% block content %}
 
     <script>
+        const zoomOptions = {
+            limits: {
+                x: {min: -200, max: 200, minRange: 50},
+                y: {min: -200, max: 200, minRange: 50}
+            },
+            pan: {
+                enabled: true,
+                mode: 'xy',
+            },
+            zoom: {
+                wheel: {
+                    enabled: true,
+                },
+                pinch: {
+                    enabled: true
+                },
+                mode: 'xy',
+                onZoomComplete({chart}) {
+                    // This update is needed to display up to date zoom level in the title.
+                    // Without this, previous zoom level is displayed.
+                    // The reason is: title uses the same beforeUpdate hook, and is evaluated before zoom.
+                    chart.update('none');
+                }
+            }
+        };
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
             fetch('http://127.0.0.1:8000/get_day_avg_sensor_data/')
                 .then(response => response.json())
@@ -241,6 +269,16 @@
                         },
                         options: {
                             maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
                             legend: {
                                 display: true,
                                 position: "bottom",
@@ -277,6 +315,16 @@
                         },
                         options: {
                             maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
                             legend: {
                                 display: true,
                                 position: "bottom",
@@ -313,6 +361,16 @@
                         },
                         options: {
                             maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
                             legend: {
                                 display: true,
                                 position: "bottom",
@@ -349,6 +407,16 @@
                         },
                         options: {
                             maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
                             legend: {
                                 display: true,
                                 position: "bottom",
@@ -385,6 +453,16 @@
                         },
                         options: {
                             maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
                             legend: {
                                 display: true,
                                 position: "bottom",
@@ -421,6 +499,16 @@
                         },
                         options: {
                             maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
                             legend: {
                                 display: true,
                                 position: "bottom",
@@ -469,34 +557,6 @@
 
                     relative_humidity_date = relative_humidity.map((item => item.date))
                     relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
-
-
-                    const zoomOptions = {
-                        limits: {
-                            x: {min: -200, max: 200, minRange: 50},
-                            y: {min: -200, max: 200, minRange: 50}
-                        },
-                        pan: {
-                            enabled: true,
-                            mode: 'xy',
-                        },
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: 'xy',
-                            onZoomComplete({chart}) {
-                                // This update is needed to display up to date zoom level in the title.
-                                // Without this, previous zoom level is displayed.
-                                // The reason is: title uses the same beforeUpdate hook, and is evaluated before zoom.
-                                chart.update('none');
-                            }
-                        }
-                    };
-
 
                     var lineChart = new Chart(document.getElementById('complete_history_graph'), {
 

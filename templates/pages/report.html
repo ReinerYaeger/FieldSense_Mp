@@ -211,6 +211,19 @@
             </div>
 
 
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.addEventListener('change', function (event) {
+                            if (!this.checked) {
+                                event.preventDefault();
+                                this.checked = true;
+                            }
+                        });
+                    });
+                });</script>
 
 
 

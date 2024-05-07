@@ -285,9 +285,8 @@ def report(request):
 
 def generate_report(past_days, forecast_days, selected_variables):
     print("Calculating Report Data")
-    weather_data_dict = generate_report_data(past_days, forecast_days, selected_variables)
 
-    return JsonResponse(weather_data_dict)
+    return generate_report_data(past_days, forecast_days, selected_variables)
 
 
 def generate_report_data(past_days, forecast_days, selected_variables):

@@ -67,7 +67,7 @@ class DataConsumer(AsyncWebsocketConsumer):
                     })
                 )
 
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
 
 class MapDataConsumer(AsyncWebsocketConsumer):
