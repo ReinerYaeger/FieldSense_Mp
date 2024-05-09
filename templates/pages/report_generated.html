@@ -28,7 +28,7 @@
                     console.log(soil_moisture_value)
 
                     temp_date = temperature.map((item => item.date))
-                    temp_value = temperature.map((item => item.temperature_2m))
+                    temp_value = temperature.map(item => item.temperature_2m * 120);
                     console.log(temp_value)
 
                     precipitation_date = precipitation.map((item => item.date))
@@ -48,7 +48,7 @@
                     console.log(evapotranspiration_value)
 
                     soil_temp_date = soil_temperature.map((item => item.date))
-                    soil_temp_value = soil_temperature.map((item => item.soil_temperature_0cm))
+                    soil_temp_value = soil_temperature.map(item => ((item.soil_temperature_0cm - 32) * ((5 / 9))));
 
                     console.log(evapotranspiration_value)
 
@@ -98,14 +98,14 @@
                                 label: 'Relative Humidity (%)',
                                 data: relative_humidity_value,
                                 borderColor: 'rgb(41,75,209)',
-                                radius: .6,
+                                radius: .0,
                                 borderWidth: 2,
                                 fill: false
                             }, {
                                 label: 'Soil Temperature (°C)',
                                 data: soil_temp_value,
                                 borderColor: 'rgb(67,2,2)',
-                                radius: .6,
+                                radius: .0,
                                 borderWidth: 2,
                                 fill: false
                             }, {
@@ -113,43 +113,51 @@
                                 data: soil_moisture_value,
                                 borderColor: 'rgb(255,191,41)',
                                 borderWidth: 2,
-                                radius: .6,
+                                radius: .0,
                                 fill: false
                             }, {
                                 label: 'Direct Radiation (%)',
                                 data: direct_radiation_value,
-                                borderColor: 'rgb(255,30,0)',
+                                borderColor: 'rgb(105,17,190)',
                                 borderWidth: 2,
-                                radius: .6,
+                                radius: .0,
                                 fill: false
                             }, {
                                 label: 'Evapotranspiration mm',
                                 data: evapotranspiration_value,
                                 borderColor: 'rgb(123,179,91)',
                                 borderWidth: 2,
-                                radius: .6,
+                                radius: .0,
                                 fill: false
                             }, {
                                 label: 'Precipitation mm',
                                 data: precipitation_value,
                                 borderColor: 'rgb(24,197,251)',
-                                radius: .6,
+                                radius: .0,
                                 borderWidth: 2,
                                 fill: false
                             }, {
                                 label: 'Temperature (°C)',
                                 data: temp_value,
                                 borderColor: 'rgb(255,7,54)',
-                                radius: .6,
+                                radius: .0,
                                 borderWidth: 2,
                                 fill: false
                             }],
                         },
                         options: {
                             maintainAspectRatio: false,
+                            scales: {
+                                xAxes: [{
+                                    type: 'time',
+                                    ticks: {
+                                        autoSkip: true,
+                                        maxTicksLimit: 15 // Limiting to 15 ticks
+                                    }
+                                }]
+                            },
                             plugins: {
                                 zoom: zoomOptions,
-
                                 legend: {
                                     display: true,
                                     position: "bottom",
@@ -158,7 +166,6 @@
                                     }
                                 },
                             },
-
                         }
                     });
                 });
