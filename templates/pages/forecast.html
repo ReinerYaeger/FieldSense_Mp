@@ -19,6 +19,8 @@
             fetch('http://127.0.0.1:8000/generate_forcast/')
                 .then(response => response.json())
                 .then(data => {
+
+
                     var temperature = JSON.parse(data.temperature_2m);
                     var precipitation = JSON.parse(data.precipitation);
                     var evapotranspiration = JSON.parse(data.evapotranspiration);

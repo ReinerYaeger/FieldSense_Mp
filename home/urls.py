@@ -18,12 +18,14 @@ urlpatterns = [
     path('view_requests/', views.view_requests, name='view_requests'),
     path('sgr_panel/', views.sgr_panel, name='sgr_panel'),
 
+
     path('sensor_dataset/', views.sensor_dataset, name='sensor_dataset'),
     path('sensor_location/', views.sensor_location, name='sensor_location'),
 
     # path('weather_data/', views.weather_historical_date, name='weather_data'),
     path('historical_weather/', views.historical_weather, name='historical_weather'),
     path('generate_forcast/', views.generate_forcast, name='generate_forcast'),
+    path('generate_report_data/', views.generate_report_data, name='generate_report_data'),
 
     path('get_day_avg_sensor_data/', views.get_day_avg_sensor_data, name='get_day_avg_sensor_data'),
     path('average_reading_past_week/', views.average_reading_past_week, name='average_reading_past_week'),

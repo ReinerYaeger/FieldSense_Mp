@@ -22,45 +22,16 @@
 
     </style>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin=""/>
 {% endblock extrastyle %}
 
 
 {% block content %}
 
-    <script>
-        var marker;
-        var map;
-    </script>
+
 
     <script>
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Initialize Leaflet map
-            map = L.map('map').setView([18.109656, -77.297565], 7);
-            var spatialExtent = L.latLngBounds([17.7012, -78.3666], [18.5242, -76.199]);
 
-            map.setMaxBounds(spatialExtent);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 22,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
-            map.on('click', function (e) {
-                map.off('click', e);
-                lat = e.latlng.lat;
-                long = e.latlng.lng;
-
-                if (marker) { // check
-                    map.removeLayer(marker); // remove
-                }
-                marker = L.marker([lat, long]).addTo(map);
-                document.getElementById("lat-value").value = lat;
-                document.getElementById("long-value").value = long;
-
-            });
-            pointToLocation()
-
-        });
         var checkboxes = document.getElementsByName("variable_select");
 
         // Loop through each checkbox
@@ -76,25 +47,8 @@
 
     </script>
 
-    <script>
-
-        function changeForm() {
-            if (document.getElementById('sensor_group_radio').checked) {
-
-                document.getElementById('sensor_group_form').hidden = false;
-                document.getElementById('island_wide_form').hidden = true;
-
-            } else if (document.getElementById('island_wide_radio').checked) {
-                document.getElementById('sensor_group_form').hidden = true;
-                document.getElementById('island_wide_form').hidden = false;
 
 
-            }
-        }
-    </script>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <div class="auth-wrapper">
         <div class="auth-content">
             <div class="auth-bg">
@@ -104,7 +58,7 @@
                 <span class="r"></span>
             </div>
             <div class="card" style="width: 30rem;">
-                <form method="post" class="card-body text-center">
+                <form  method="post" class="card-body text-center">
                     {% csrf_token %}
 
                     <div class="mb-4">
@@ -115,7 +69,7 @@
 
                         <div class="row">
                             <div class="col">
-                                <label for="sensor_group_select">Past Days</label>
+                                <label for="sensor_group_select">Sensor group</label>
                                 <select required class="form-control" id="sensor_group_select"
                                         name="past_days">
                                     <option value="Utech">University of Technology</option>
@@ -126,14 +80,6 @@
                                 <label for="sensor_group_select">Past Days</label>
                                 <select required class="form-control" id="sensor_group_select"
                                         name="past_days">
-                                    <option value="1">1 Day</option>
-                                    <option value="3">3 Days</option>
-                                    <option value="4">4 Days</option>
-                                    <option value="5">5 Days</option>
-                                    <option value="7">1 Week</option>
-                                    <option value="14">2 Week</option>
-                                    <option value="31">1 Month</option>
-                                    <option value="61">2 Month</option>
                                     <option value="92">3 Month</option>
                                 </select>
                             </div>
@@ -141,10 +87,6 @@
                                 <label for="sensor_group_select">Forcast</label>
                                 <select required class="form-control" id="sensor_group_select"
                                         name="sensor_group_select">
-                                    <option value="1">1 Day</option>
-                                    <option value="3">3 Days</option>
-                                    <option value="7">7 Days</option>
-                                    <option value="14">14 Days</option>
                                     <option value="16">16 Days</option>
                                 </select>
                             </div>

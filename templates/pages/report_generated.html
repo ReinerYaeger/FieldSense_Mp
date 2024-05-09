@@ -11,150 +11,176 @@
     <script>
 
         document.addEventListener('DOMContentLoaded', function () {
-            console.log(json_)
-            json_ = "{{ report }}"
-            console.log(json_)
 
-            var temperature = JSON.parse();
-            var precipitation = JSON.parse(data.precipitation);
-            var evapotranspiration = JSON.parse(data.et0_fao_evapotranspiration);
-            var direct_radiation = JSON.parse(data.direct_radiation);
-            var relative_humidity = JSON.parse(data.relative_humidity_2m);
-            var soil_temperature = JSON.parse(data.soil_temperature_0_to_7cm);
+            fetch('http://127.0.0.1:8000/generate_report_data/')
+                .then(response => response.json())
+                .then(data => {
+                    var temperature = JSON.parse(data.temperature_2m);
+                    var precipitation = JSON.parse(data.precipitation);
+                    var evapotranspiration = JSON.parse(data.evapotranspiration);
+                    var direct_radiation = JSON.parse(data.direct_radiation);
+                    var relative_humidity = JSON.parse(data.relative_humidity_2m);
+                    var soil_temperature = JSON.parse(data.soil_temperature_0cm);
+                    var soil_moisture = JSON.parse(data.soil_moisture_0_to_1cm)
 
-            temp_date = temperature.map((item => item.date))
-            temp_value = temperature.map((item => item.temperature_2m))
+                    soil_moisture_date = soil_moisture.map((item => item.date))
+                    soil_moisture_value = soil_moisture.map((item => item.soil_moisture_0_to_1cm))
+                    console.log(soil_moisture_value)
 
+                    temp_date = temperature.map((item => item.date))
+                    temp_value = temperature.map((item => item.temperature_2m))
+                    console.log(temp_value)
 
-            precipitation_date = precipitation.map((item => item.date))
-            precipitation_value = precipitation.map((item => item.precipitation))
+                    precipitation_date = precipitation.map((item => item.date))
+                    precipitation_value = precipitation.map((item => item.precipitation))
 
-            evapotranspiration_date = evapotranspiration.map((item => item.date))
-            evapotranspiration_value = evapotranspiration.map((item => item.et0_fao_evapotranspiration))
+                    console.log(precipitation_value)
 
-            direct_radiation_date = direct_radiation.map((item => item.date))
-            direct_radiation_value = direct_radiation.map((item => item.direct_radiation))
+                    evapotranspiration_date = evapotranspiration.map((item => item.date))
+                    evapotranspiration_value = evapotranspiration.map((item => item.evapotranspiration))
 
-            soil_temp_date = soil_temperature.map((item => item.date))
-            soil_temp_value = soil_temperature.map((item => item.soil_temperature_0_to_7cm))
+                    console.log(evapotranspiration_date)
+                    console.log(evapotranspiration_value)
 
-            relative_humidity_date = relative_humidity.map((item => item.date))
-            relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
+                    direct_radiation_date = direct_radiation.map((item => item.date))
+                    direct_radiation_value = direct_radiation.map((item => item.direct_radiation))
 
+                    console.log(evapotranspiration_value)
 
-            const zoomOptions = {
-                limits: {
-                    x: {min: -200, max: 200, minRange: 50},
-                    y: {min: -200, max: 200, minRange: 50}
-                },
-                pan: {
-                    enabled: true,
-                    mode: 'xy',
-                },
-                zoom: {
-                    wheel: {
-                        enabled: true,
-                    },
-                    pinch: {
-                        enabled: true
-                    },
-                    mode: 'xy',
-                    onZoomComplete({chart}) {
-                        chart.update('none');
-                    }
-                }
-            };
+                    soil_temp_date = soil_temperature.map((item => item.date))
+                    soil_temp_value = soil_temperature.map((item => item.soil_temperature_0cm))
 
+                    console.log(evapotranspiration_value)
 
-            var lineChart = new Chart(document.getElementById('complete_history_graph'), {
-
-                type: 'line',
-                data: {
-                    labels: precipitation_date.map(item => item.split('.00')[0]),
-                    datasets: [{
-                        label: 'Relative Humidity (%)',
-                        data: relative_humidity_value,
-                        borderColor: 'rgb(41,75,209)',
-                        radius: .6,
-                        borderWidth: 2,
-                        fill: false
-                    }, {
-                        label: 'Soil Moisture (VWC)',
-                        data: {{ week_sensor_data|safe }},
-                        borderColor: 'rgb(128,16,188)',
-                        radius: .6,
-                        borderWidth: 2,
-                        fill: false
-                    }, {
-                        label: 'Soil Temperature (°C)',
-                        data: soil_temp_value,
-                        borderColor: 'rgb(67,2,2)',
-                        radius: .6,
-                        borderWidth: 2,
-                        fill: false
-                    }, {
-                        label: 'Direct Radiation (w/m²)',
-                        data: direct_radiation_value,
-                        borderColor: 'rgb(255,191,41)',
-                        borderWidth: 2,
-                        radius: .6,
-                        fill: false
-                    }, {
-                        label: 'Evapotranspiration mm',
-                        data: evapotranspiration_value,
-                        borderColor: 'rgb(123,179,91)',
-                        borderWidth: 2,
-                        radius: .6,
-                        fill: false
-                    }, {
-                        label: 'Precipitation mm',
-                        data: precipitation_value,
-                        borderColor: 'rgb(24,197,251)',
-                        radius: .6,
-                        borderWidth: 2,
-                        fill: false
-                    }, {
-                        label: 'Temperature (°C)',
-                        data: temp_value,
-                        borderColor: 'rgb(255,7,54)',
-                        radius: .6,
-                        borderWidth: 2,
-                        fill: false
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        zoom: zoomOptions,
-                        legend: {
-                            display: true,
-                            position: "bottom",
-                            labels: {
-                                fontColor: 'rgb(0, 0, 0)'
-                            }
+                    relative_humidity_date = relative_humidity.map((item => item.date))
+                    relative_humidity_value = relative_humidity.map((item => item.relative_humidity_2m))
+                    console.log(temp_value)
+                    const zoomOptions = {
+                        limits: {
+                            x: {min: -200, max: 200, minRange: 50},
+                            y: {min: -200, max: 200, minRange: 50}
                         },
-                    }
-                }
-            });
-        });)
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                        },
+                        xAxes: [{
+                            type: 'time',
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 20
+                            }
+                        }],
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'xy',
+                            onZoomComplete({chart}) {
+                                // This update is needed to display up to date zoom level in the title.
+                                // Without this, previous zoom level is displayed.
+                                // The reason is: title uses the same beforeUpdate hook, and is evaluated before zoom.
+                                chart.update('none');
+                            }
+                        }
+                    };
 
+
+                    var lineChart = new Chart(document.getElementById('complete_history_graph'), {
+
+                        type: 'line',
+                        data: {
+                            labels: relative_humidity_date,
+                            datasets: [{
+                                label: 'Relative Humidity (%)',
+                                data: relative_humidity_value,
+                                borderColor: 'rgb(41,75,209)',
+                                radius: .6,
+                                borderWidth: 2,
+                                fill: false
+                            }, {
+                                label: 'Soil Temperature (°C)',
+                                data: soil_temp_value,
+                                borderColor: 'rgb(67,2,2)',
+                                radius: .6,
+                                borderWidth: 2,
+                                fill: false
+                            }, {
+                                label: 'Soil Moisture (%)',
+                                data: soil_moisture_value,
+                                borderColor: 'rgb(255,191,41)',
+                                borderWidth: 2,
+                                radius: .6,
+                                fill: false
+                            }, {
+                                label: 'Direct Radiation (%)',
+                                data: direct_radiation_value,
+                                borderColor: 'rgb(255,30,0)',
+                                borderWidth: 2,
+                                radius: .6,
+                                fill: false
+                            }, {
+                                label: 'Evapotranspiration mm',
+                                data: evapotranspiration_value,
+                                borderColor: 'rgb(123,179,91)',
+                                borderWidth: 2,
+                                radius: .6,
+                                fill: false
+                            }, {
+                                label: 'Precipitation mm',
+                                data: precipitation_value,
+                                borderColor: 'rgb(24,197,251)',
+                                radius: .6,
+                                borderWidth: 2,
+                                fill: false
+                            }, {
+                                label: 'Temperature (°C)',
+                                data: temp_value,
+                                borderColor: 'rgb(255,7,54)',
+                                radius: .6,
+                                borderWidth: 2,
+                                fill: false
+                            }],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            plugins: {
+                                zoom: zoomOptions,
+
+                                legend: {
+                                    display: true,
+                                    position: "bottom",
+                                    labels: {
+                                        fontColor: 'rgb(0, 0, 0)'
+                                    }
+                                },
+                            },
+
+                        }
+                    });
+                });
+        });
     </script>
 
     <br>
 
-        <div class="row">
-            <div class="col">
-                <br>
-                <div class="card yearly-sales">
-                    <div class="card-block">
-                        <div style="height: 580px;"> <!-- Adjust the height as needed -->
+    <div class="row">
+        <div class="col">
+            <br>
+            <div class="card yearly-sales">
+                <div class="card-block">
+                    <h3> Report of the Past 3 Months and a Forcast for the next 16 days</h3>
+                    <div style="height: 580px;"> <!-- Adjust the height as needed -->
 
-                            <canvas id="complete_history_graph"></canvas>
-                        </div>
+                        <canvas id="complete_history_graph"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
 

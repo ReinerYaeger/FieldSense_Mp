@@ -76,7 +76,7 @@ def get_serial_data(sleep_sec=3):
         fallback()
 
 
-def fallback(sleep_sec=5):
+def fallback(sleep_sec=0):
 
     analog_dict = {
         'A0': {'soil_moisture_data': [], 'timestamp': []},

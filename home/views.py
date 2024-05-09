@@ -273,23 +273,18 @@ def report(request):
 
             selected_variables = request.POST.getlist('variable_select')
             print(selected_variables)
-
-            report = generate_report(past_days, forecast_days, selected_variables)
-
-            context.update({'report': report})
-
             return render(request, "pages/report_generated.html", context)
 
     return render(request, "pages/report.html", context)
 
 
-def generate_report(past_days, forecast_days, selected_variables):
-    print("Calculating Report Data")
+def generate_report(request):
+    weather_forcast_dict = generate_report_data()
+    return JsonResponse(weather_forcast_dict)
 
-    return generate_report_data(past_days, forecast_days, selected_variables)
 
+def generate_report_data(x=18.018254006, y=-76.744447946):
 
-def generate_report_data(past_days, forecast_days, selected_variables):
     cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
@@ -300,9 +295,10 @@ def generate_report_data(past_days, forecast_days, selected_variables):
     params = {
         "latitude": 18.01825,
         "longitude": -76.74444,
-        "hourly": selected_variables,
-        "past_days": past_days,
-        "forecast_days": forecast_days
+        "hourly": ["soil_moisture_0_to_1cm", "temperature_2m", "precipitation", "evapotranspiration",
+                   "relative_humidity_2m", "soil_temperature_0cm", "direct_radiation"],
+        "past_days": 92,
+        "forecast_days": 16
     }
     responses = openmeteo.weather_api(url, params=params)
 
@@ -348,6 +344,7 @@ def generate_report_data(past_days, forecast_days, selected_variables):
     soil_temperature_0cm = hourly_dataframe[['date', 'soil_temperature_0cm']].to_json(orient='records',
                                                                                       date_format='iso')
     direct_radiation = hourly_dataframe[['date', 'direct_radiation']].to_json(orient='records', date_format='iso')
+    soil_moisture_0_to_1cm = hourly_dataframe[['date', 'soil_moisture_0_to_1cm']].to_json(orient='records', date_format='iso')
 
     weather_data_dict = {
         'temperature_2m': temperature_2m,
@@ -356,15 +353,11 @@ def generate_report_data(past_days, forecast_days, selected_variables):
         'soil_temperature_0cm': soil_temperature_0cm,
         'relative_humidity_2m': relative_humidity_2m,
         'direct_radiation': direct_radiation,
+        'soil_moisture_0_to_1cm':soil_moisture_0_to_1cm
     }
-    print(temperature_2m)
-    print(evapotranspiration)
-    print(precipitation)
-    print(soil_temperature_0cm)
-    print(relative_humidity_2m)
-    print(direct_radiation)
 
-    return weather_data_dict
+
+    return JsonResponse(weather_data_dict)
 
 
 def sensor_location(request):
